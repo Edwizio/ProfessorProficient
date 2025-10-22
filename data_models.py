@@ -6,8 +6,8 @@ class Student(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     password = db.Column(db.String(200), nullable=False)
-    semester = db.Column(db.String(20))
-    program = db.Column(db.String(20))
+    semester = db.Column(db.String(20), nullable=False)
+    program = db.Column(db.String(20), nullable=False)
 
     # Adding the relationship to Course class
     courses = db.relationship("Course", backref="student", lazy=True)
@@ -18,20 +18,21 @@ class Student(db.Model):
     def __str__(self):
         return f"The id {self.id} represents the student {self.name}"
 
-# Defining the Movie model as a class
-class Movie(db.Model):
+# Defining the Course model as a class
+class Course(db.Model):
   id = db.Column(db.Integer, primary_key=True)
-  name = db.Column(db.String (200), nullable=False)
+  name = db.Column(db.String(200), nullable=False)
 
-  director = db.Column(db.String (200), nullable=False)
-  year = db.Column(db.Integer, nullable=False)
-  poster_url = db.Column(db.String (500), nullable=False)
+  grade = db.Column(db.Float, nullable=False)
+  quiz = db.Column(db.Float, nullable=False)
+  assignment = db.Column(db.Float, nullable=False)
+  paper = db.Column(db.Float, nullable=False)
 
-  # Link Movie to User
-  user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+  # Link Class to Student
+  student_id = db.Column(db.Integer, db.ForeignKey('student.id'), nullable=False)
 
   def __repr__(self):
-      return f"Movie (id = {self.id}, name = {self.name})"
+      return f"Course (id = {self.id}, name = {self.name})"
 
   def __str__(self):
-      return f"The id {self.id} represents the movie {self.name}"
+      return f"The id {self.id} represents the Course {self.name}"
