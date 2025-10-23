@@ -20,19 +20,39 @@ class Student(db.Model):
 
 # Defining the Course model as a class
 class Course(db.Model):
-  id = db.Column(db.Integer, primary_key=True)
-  name = db.Column(db.String(200), nullable=False)
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(200), nullable=False)
 
-  grade = db.Column(db.Float, nullable=False)
-  quiz = db.Column(db.Float, nullable=False)
-  assignment = db.Column(db.Float, nullable=False)
-  paper = db.Column(db.Float, nullable=False)
+    grade = db.Column(db.Float, nullable=False)
+    quiz = db.Column(db.Float, nullable=False)
+    assignment = db.Column(db.Float, nullable=False)
+    paper = db.Column(db.Float, nullable=False)
 
-  # Link Class to Student
-  student_id = db.Column(db.Integer, db.ForeignKey('student.id'), nullable=False)
+    # Adding the relationship to Teacher class
+    teacher = db.relationship("Teacher", backref="course", lazy=True)
 
-  def __repr__(self):
-      return f"Course (id = {self.id}, name = {self.name})"
+    # Link Class to Student
+    student_id = db.Column(db.Integer, db.ForeignKey('student.id'), nullable=False)
 
-  def __str__(self):
-      return f"The id {self.id} represents the Course {self.name}"
+    def __repr__(self):
+        return f"Course (id = {self.id}, name = {self.name})"
+
+    def __str__(self):
+        return f"The id {self.id} represents the Course {self.name}"
+
+
+# Defining the Teacher model as a class
+class Teacher(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    password = db.Column(db.String(200), nullable=False)
+    project = db.Column(db.String(20), nullable=False)
+
+    # Link Class to Student
+    course_id = db.Column(db.Integer, db.ForeignKey('course.id'), nullable=False)
+
+    def __repr__(self):
+        return f"Teacher(id = {self.id}, name = {self.name})"
+
+    def __str__(self):
+        return f"The id {self.id} represents the teacher {self.name}"
