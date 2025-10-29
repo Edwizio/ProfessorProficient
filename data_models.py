@@ -13,6 +13,7 @@ class UserRole(enum.Enum):
 # Integrating the Student, Teacher and Admin model as a single class User
 class User(db.Model):
     """This class defines a general user who can either be a teacher, student or admin"""
+    __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     password = db.Column(db.String(200), nullable=False)
@@ -42,6 +43,7 @@ class User(db.Model):
 # Creating the model class Program which stores information about the programs offered for students to enroll
 class Program(db.Model):
     """ This class defines a program in which students get enrolled"""
+    __tablename__ = 'programs'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String(100), unique=True, nullable=False)
     description = db.Column(db.Text)
@@ -59,6 +61,7 @@ class Program(db.Model):
 class Course(db.Model):
     """This class defines a course which can be taken up by a student and taught and maintained by a teacher, also they
     can have courses and assignments"""
+    __tablename__ = 'courses'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String(200), nullable=False)
     code = db.Column(db.String(50), unique=True, nullable=False)
@@ -106,6 +109,7 @@ student_course = db.Table(
 class Quiz(db.Model):
     """This class defines the basic functions of a quiz table like its title, marks, due date, the teacher who created it,
     and the course it is linked to"""
+    __tablename__ = 'quizzes'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     title = db.Column(db.String(100), nullable=False)
     total_marks = db.Column(db.Integer)
