@@ -27,7 +27,7 @@ class User(db.Model):
     quizzes_created = db.relationship("Quiz", back_populates="created_by_user")
     assignments_created = db.relationship("Assignment", back_populates="created_by_user")
 
-    # Many-to-many relationships defined, the below tables will serve as the joining table
+    # Many-to-many relationships defined, the below variables will serve as the relationship properties,
     # Secondary tells SQLAlchemy that there’s a linking table that connects these two tables in a many-to-many relationship
     teaching_courses = db.relationship("Course", secondary="teacher_course", back_populates="teachers")
     enrolled_courses = db.relationship("Course", secondary="student_course", back_populates="students")
@@ -101,3 +101,19 @@ student_course = db.Table(
     db.Column('course_id', db.Integer, db.ForeignKey('courses.id'), primary_key=True),
     db.Column('enrolled_at', db.DateTime, server_default=text('CURRENT_TIMESTAMP'))
 )
+
+# Class model Quiz created and defined
+class Quiz(db.Model):
+    """This class defines the basic functions of a quiz table like its marks, due date, the teacher who created it, and
+     the course it is linked to"""
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    title = db.Column(db.String(100), nullable=False)
+    total_marks = db.Column(db.Integer)
+    due_date = db.Column(db.DateTime)
+    course_id = db.Column(db.Integer, db.ForeignKey('courses.id'))
+    created_by = db.Column(db.Integer, db.ForeignKey('users.id'))
+    created_at = db.Column(db.DateTime, server_default=text('CURRENT_TIMESTAMP'))
+
+    # Relationships defined based on courses and teachers
+    course = db.relationship("Course", back_populates="quizzes")
+    created_by_user = db.relationship("User", back_populates="quizzes_created")
