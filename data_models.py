@@ -86,24 +86,3 @@ class Course(db.Model):
         return f"The id {self.id} represents the Course {self.name} with code {self.code}"
 
 
-
-# Defining the Semester model as a class
-class Semester(db.Model):
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    name = db.Column(db.String(50), nullable=False)
-
-    # Link to Program class
-    program_id = db.Column(db.Integer, db.ForeignKey('programs.id'), nullable=False)
-
-    # Relationships
-    program = db.relationship('Program', backref="Semester", lazy=True)
-    courses = db.relationship('Course', back_populates='semester', cascade="all, delete-orphan")
-
-    # Link Class to Student
-    course_id = db.Column(db.Integer, db.ForeignKey('course.id'), nullable=False)
-
-    def __repr__(self):
-        return f"Teacher(id = {self.id}, name = {self.name})"
-
-    def __str__(self):
-        return f"The id {self.id} represents the teacher {self.name}"
