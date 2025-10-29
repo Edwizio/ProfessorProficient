@@ -104,8 +104,8 @@ student_course = db.Table(
 
 # Class model Quiz created and defined
 class Quiz(db.Model):
-    """This class defines the basic functions of a quiz table like its marks, due date, the teacher who created it, and
-     the course it is linked to"""
+    """This class defines the basic functions of a quiz table like its title, marks, due date, the teacher who created it,
+    and the course it is linked to"""
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     title = db.Column(db.String(100), nullable=False)
     total_marks = db.Column(db.Integer)
@@ -123,3 +123,28 @@ class Quiz(db.Model):
 
     def __str__(self):
         return f"The id {self.id} represents the Quiz titled {self.title}"
+
+
+# Class model Quiz created and defined
+class Assignment(db.Model):
+    """This class defines the basic functions of an assignment table like its title, marks, due date, the teacher who
+    created it, and the course it is linked to"""
+    __tablename__ = 'assignments'
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    title = db.Column(db.String(100), nullable=False)
+    total_marks = db.Column(db.Integer)
+    due_date = db.Column(db.DateTime)
+    course_id = db.Column(db.Integer, db.ForeignKey('courses.id'))
+    created_by = db.Column(db.Integer, db.ForeignKey('users.id'))
+    created_at = db.Column(db.DateTime, server_default=text('CURRENT_TIMESTAMP'))
+
+    # Relationships defined based on courses and teachers
+    course = db.relationship("Course", back_populates="assignments")
+    created_by_user = db.relationship("User", back_populates="assignments_created")
+
+    def __repr__(self):
+        return f"Assignment (id = {self.id}, title = {self.name})"
+
+    def __str__(self):
+        return f"The id {self.id} represents the Assignment titled {self.title}"
