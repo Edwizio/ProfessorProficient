@@ -86,3 +86,10 @@ class Course(db.Model):
         return f"The id {self.id} represents the Course {self.name} with code {self.code}"
 
 
+# Association Table teacher_course created to handle the many-to_many relationships between teachers, and the courses they teach
+teacher_course = db.Table(
+    'teacher_course',
+    db.Column('teacher_id', db.Integer, db.ForeignKey('users.id'), primary_key=True),
+    db.Column('course_id', db.Integer, db.ForeignKey('courses.id'), primary_key=True),
+    db.Column('assigned_at', db.DateTime, server_default=text('CURRENT_TIMESTAMP'))
+)
