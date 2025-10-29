@@ -4,8 +4,10 @@ from sqlalchemy import text
 
 db = SQLAlchemy()
 
-
+# Class Model UserRole defined to set the roles allowed for users using the enum class
 class UserRole(enum.Enum):
+    """This class defines the user roles allowed using the enum method from Enum class to ensure database integrity,avoid
+    magic strings and typos and to prevent invalid user values"""
     admin = "admin"
     teacher = "teacher"
     student = "student"
