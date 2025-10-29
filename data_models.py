@@ -9,7 +9,7 @@ class UserRole(enum.Enum):
     teacher = "teacher"
     student = "student"
 
-# Integrating the Student, Teacher and Admin model as a single class
+# Integrating the Student, Teacher and Admin model as a single class User
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
