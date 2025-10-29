@@ -117,3 +117,9 @@ class Quiz(db.Model):
     # Relationships defined based on courses and teachers
     course = db.relationship("Course", back_populates="quizzes")
     created_by_user = db.relationship("User", back_populates="quizzes_created")
+
+    def __repr__(self):
+        return f"Quiz (id = {self.id}, title = {self.name})"
+
+    def __str__(self):
+        return f"The id {self.id} represents the Quiz titled {self.title}"
