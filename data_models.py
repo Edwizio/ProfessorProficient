@@ -93,3 +93,11 @@ teacher_course = db.Table(
     db.Column('course_id', db.Integer, db.ForeignKey('courses.id'), primary_key=True),
     db.Column('assigned_at', db.DateTime, server_default=text('CURRENT_TIMESTAMP'))
 )
+
+# Association Table student_course created to handle the many-to_many relationships between students, and the courses they take
+student_course = db.Table(
+    'student_course',
+    db.Column('student_id', db.Integer, db.ForeignKey('users.id'), primary_key=True),
+    db.Column('course_id', db.Integer, db.ForeignKey('courses.id'), primary_key=True),
+    db.Column('enrolled_at', db.DateTime, server_default=text('CURRENT_TIMESTAMP'))
+)
