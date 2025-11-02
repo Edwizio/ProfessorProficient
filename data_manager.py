@@ -5,7 +5,7 @@ from data_models import db, User
 
 
 class DataManager():
-    # Define Crud operations as methods
+    # Define Crud operations as methods for User Class
     def create_user(self, name, password):
         """This method creates a new user"""
 
@@ -26,16 +26,20 @@ class DataManager():
 
     def get_users(self):
         """This function returns a list of the existing users"""
-        users = User.query.all()
-        return users
+        if self.role == "admin":
+            users = User.query.all()
+            return [user.role for user in users]
+        else:
+            return f"The role {self.role} is not allowed to get a user list"
 
-    def delete_user(self, student_id):
+
+    def delete_user(self, user_id):
         """This function deletes a user based on it's ID"""
 
-        # Fetching the correct Student Object
-        user = User.query.get(student_id)
+        # Fetching the correct User Object
+        user = User.query.get(user_id)
 
-        # Deleting the student from the database
+        # Deleting the user from the database
         db.session.delete(user)
         # Using db.session.rollback() with try-except to avoid crashing if database error occurs
         try:
@@ -44,3 +48,6 @@ class DataManager():
         except SQLAlchemyError:
             db.session.rollback()
             return None
+
+    def update_user(self, user_id):
+        """This function updates a given user's attribute that are provided"""
