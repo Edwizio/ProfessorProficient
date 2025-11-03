@@ -90,3 +90,21 @@ def update_user(user_id):
     except SQLAlchemyError:
         db.session.rollback()
         return {"error": "The request could not be completed as it conflicts with the current state of the resource."}, 409
+
+
+# Deleting an existing user from the database
+@app.route("/<int:user_id>", methods=["DELETE"])
+def delete_user(user_id):
+    """This function deletes a user by ID."""
+    user = User.query.get_or_404(user_id) # Using got_or_404() for automatic error handling
+
+    # Deleting the user from the database
+    db.session.delete(user)
+
+    # Error handling while updating to the database to avoid crashing in case of any database error
+    try:
+        db.session.commit()
+        return {"message": f"User {user.name} deleted successfully"}, 200
+    except SQLAlchemyError:
+        db.session.rollback()
+        return {"error": "The request could not be completed as it conflicts with the current state of the resource."}, 409
