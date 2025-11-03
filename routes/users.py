@@ -1,6 +1,6 @@
-from flask import request
+from flask import request, db
 from sqlalchemy.exc import SQLAlchemyError
-from ProfessorProficient.data_models import User, UserRole, db
+from ProfessorProficient.data_models import User, UserRole
 from ProfessorProficient.app import app
 from sqlalchemy import func
 
