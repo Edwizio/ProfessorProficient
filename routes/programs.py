@@ -78,3 +78,27 @@ def update_program(program_id):
         return {
             "error": "The request could not be completed as it conflicts with the current state of the resource."}, 409
 
+
+# Deleting a specific program using DELETE
+@app.route("/<int:program_id>", methods=["DELETE"])
+def delete_program(program_id):
+    """This function deletes a specific program based in its ID."""
+
+    program = Program.query.get_or_404(program_id) # Using got_or_404() for automatic error handling
+
+    # Preventing deletion if courses exist
+    if program.courses:
+        return {"error": "Cannot delete program with courses assigned"}, 409
+
+    # Deleting the program from the database
+    db.session.delete(program)
+    # Error handling while updating to the database to avoid crashing in case of any database error
+    try:
+        db.session.commit()
+        return {"message": f"The program {program.id} deleted successfully"}, 200
+    except SQLAlchemyError:
+        db.session.rollback()
+        return {
+            "error": "The request could not be completed as it conflicts with the current state of the resource."}, 409
+
+
