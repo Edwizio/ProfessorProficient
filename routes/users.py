@@ -108,3 +108,29 @@ def delete_user(user_id):
     except SQLAlchemyError:
         db.session.rollback()
         return {"error": "The request could not be completed as it conflicts with the current state of the resource."}, 409
+
+
+# Searching the database based on the provided name or email
+@app.route("/search", methods=["GET"])
+def search_users():
+    """This function searches users by name or email."""
+    keyword = request.args.get("q")
+    if not keyword:
+        return {"error": "Missing search query 'q'"}, 400
+
+    # Searching through the database using the case-insensitive .ilike() and | operator
+    users = User.query.filter(
+        (User.name.ilike(f"%{keyword}%")) | (User.email.ilike(f"%{keyword}%"))
+    ).all()
+
+    # Considering the case if the no users match the input query
+    if not users:
+        return {"message": "No users found"}, 404
+
+    # Returning a list of users who match the search criterion
+    return [{
+        "id": u.id,
+        "name": u.name,
+        "email": u.email,
+        "role": u.role.value
+    } for u in users], 200
