@@ -57,3 +57,24 @@ def create_program():
     except SQLAlchemyError:
         return {"error": "The request could not be completed as it conflicts with the current state of the resource."}, 409
 
+
+# Updating a program's different attributes using PUT
+@app.route("/<int:program_id>", methods=["PUT"])
+def update_program(program_id):
+    """This function updates a program using its ID."""
+    program = Program.query.get_or_404(program_id) # Using got_or_404() for automatic error handling
+    data = request.get_json()
+
+    # Assigning the new values from the JSON to the program object other if the param exists, otherwise keeping the original value
+    program.name = data.get("name", program.name)
+    program.description = data.get("description", program.description)
+
+    # Error handling while updating to the database to avoid crashing in case of any database error
+    try:
+        db.session.commit()
+        return {"message": f"User {program.name} updated successfully"}, 200
+    except SQLAlchemyError:
+        db.session.rollback()
+        return {
+            "error": "The request could not be completed as it conflicts with the current state of the resource."}, 409
+
