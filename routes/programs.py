@@ -1,9 +1,11 @@
-from flask import request
+from flask import request, db
+from sqlalchemy.exc import SQLAlchemyError
+
 from ProfessorProficient.data_models import Program
 from ProfessorProficient.app import app
 
 
-# Getting a list of all programs
+# Getting a list of all programs using GET
 @app.route("/", methods=["GET"])
 def get_programs():
     """This function returns a list of dictionaries of all programs showing their ID, Name and small description"""
@@ -17,7 +19,7 @@ def get_programs():
 
 
 
-# Getting a program by it's ID
+# Getting a program by its ID using GET
 @app.route("/<int:program_id>")
 def get_program(program_id):
     """This function gets a program by its ID"""
@@ -29,4 +31,29 @@ def get_program(program_id):
         "description": program.description
     }, 200
 
+
+# Creating a new program using POST
+@app.route("/", methods=["POST"])
+def create_program():
+    data = request.get_json()
+
+    # Checking for the required parameters
+    if not data.get("name") or not data.get("created_by"):
+        return {"error": "Name and created_by are required fields"}, 400
+
+    # Creating new Program object
+    program = Program(
+        name=data["name"],
+        description=data.get("description"),
+        created_by=data["created_by"]
+    )
+
+    # Adding to the database
+    db.session.add(program)
+    # Error handling while adding the new user to the database to avoid crashing in case of any database error
+    try:
+        db.session.commit()
+        return {"message": "Program created successfully", "id": program.id}, 201
+    except SQLAlchemyError:
+        return {"error": "The request could not be completed as it conflicts with the current state of the resource."}, 409
 
