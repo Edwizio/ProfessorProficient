@@ -134,3 +134,18 @@ def search_users():
         "email": u.email,
         "role": u.role.value
     } for u in users], 200
+
+
+# Finding a user based on it's ID
+@app.route("/<int:user_id>", methods=["GET"])
+def get_user_by_id(user_id):
+    """This function fetches a specific user by it's ID."""
+    user = User.query.get_or_404(user_id) # Using got_or_404() for automatic error handling
+
+    return {
+        "id": user.id,
+        "name": user.name,
+        "email": user.email,
+        "role": user.role.value,
+        "created_at": user.created_at.isoformat() if user.created_at else None
+    }, 200
