@@ -60,6 +60,33 @@ def create_user():
         db.session.commit()
     except SQLAlchemyError:
         db.session.rollback()
-        return {"error": "Email already exists"}, 409
+        return {"error": "The request could not be completed as it conflicts with the current state of the resource."}, 409
 
     return {"message": f"{new_user.role.value.title()} '{new_user.name}' created successfully"}, 201
+
+# Updating a user's different attributing using PUT method instead of POST to avoid creating a new route unnecessarily
+@app.route("/<int:user_id>", methods=["PUT"])
+def update_user(user_id):
+    """This function updates to provided user details."""
+    user = User.query.get_or_404(user_id) # Using got_or_404() for automatic error handling
+    data = request.get_json()
+
+    # Assigning the new values from the JSON to the user object other if the param exists, otherwise keeping the original value
+    user.name = data.get("name", user.name)
+    user.email = data.get("email", user.email)
+    user.password = data.get("password", user.password)
+
+    # Checking for validity if role is to be updated as well
+    if "role" in data:
+        try:
+            user.role = UserRole[data["role"]]
+        except KeyError:
+            return {"error": "Invalid role"}, 400
+
+    # Error handling while updating to the database to avoid crashing in case of any database error
+    try:
+        db.session.commit()
+        return {"message": f"User {user.name} updated successfully"}, 200
+    except SQLAlchemyError:
+        db.session.rollback()
+        return {"error": "The request could not be completed as it conflicts with the current state of the resource."}, 409
