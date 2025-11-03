@@ -14,3 +14,19 @@ def get_programs():
     else:
         return [{"id": prog.id, "Name": prog.name ,"Description": prog.description}
             for prog in programs], 200
+
+
+
+# Getting a program by it's ID
+@app.route("/<int:program_id>")
+def get_program(program_id):
+    """This function gets a program by its ID"""
+    program = Program.query.get_or_404(program_id) # Using got_or_404() for automatic error handling
+
+    return {
+        "id": program.id,
+        "name": program.name,
+        "description": program.description
+    }, 200
+
+
