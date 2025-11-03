@@ -65,7 +65,7 @@ def create_user():
 
     return {"message": f"{new_user.role.value.title()} '{new_user.name}' created successfully"}, 201
 
-# Updating a user's different attributing using PUT method instead of POST to avoid creating a new route unnecessarily
+# Updating a user's different attributes using PUT method instead of POST to avoid creating a new route unnecessarily
 @app.route("/<int:user_id>", methods=["PUT"])
 def update_user(user_id):
     """This function updates to provided user details."""
