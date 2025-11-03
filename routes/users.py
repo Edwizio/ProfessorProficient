@@ -1,7 +1,8 @@
 from flask import request
-from sqlalchemy.exc import IntegrityError, SQLAlchemyError
+from sqlalchemy.exc import SQLAlchemyError
 from ProfessorProficient.data_models import User, UserRole, db
 from ProfessorProficient.app import app
+from sqlalchemy import func
 
 # Creating a route for getting a list for the users from the database
 @app.route("/", methods=["GET"])
@@ -149,3 +150,16 @@ def get_user_by_id(user_id):
         "role": user.role.value,
         "created_at": user.created_at.isoformat() if user.created_at else None
     }, 200
+
+
+# Counting the total number of users in the database by role
+@app.route("/count", methods=["GET"])
+def count_users():
+    """This function returns the total count of users by role using the func utility that lets us call SQL functions in
+    Python like sum(), count, max() etc """
+
+    # A list of tuples which first extracts the role of user, then counts the users after grouping by roles
+    result = db.session.query(User.role, func.count(User.id)).group_by(User.role).all()
+    # role.value extracts the role enum and the result is a dictionary which displays the count of each role as key value pairs
+    counts = {role.value: count for role, count in result}
+    return counts, 200
