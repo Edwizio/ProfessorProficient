@@ -119,6 +119,7 @@ def search_program():
         for p in programs
     ], 200
 
+
 # Course count in each program fetched using GET
 @app.route("/program-course-counts", methods=["GET"])
 def programs_with_course_counts():

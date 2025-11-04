@@ -218,3 +218,20 @@ def remove_student(course_id, student_id):
         return {
             "error": "The request could not be completed as it conflicts with the current state of the resource."}, 409
 
+
+# Searching for a course by keyword using GET
+@app.route("/search", methods=["GET"])
+def search_courses():
+    """This function searches for a course by its name or code"""
+
+    # Assigning default value of empty string("") to avoid crashing in case keyword isn't provided
+    keyword = request.args.get("keyword", "")
+    courses = Course.query.filter(
+        (Course.name.ilike(f"%{keyword}%")) | (Course.code.ilike(f"%{keyword}%"))
+    ).all()
+
+    if not courses:
+        return {"message": "No matching courses found"}, 200
+
+    return [{"id": c.id, "name": c.name, "code": c.code} for c in courses], 200
+
