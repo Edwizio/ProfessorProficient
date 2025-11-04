@@ -102,3 +102,16 @@ def delete_program(program_id):
             "error": "The request could not be completed as it conflicts with the current state of the resource."}, 409
 
 
+# Searching for a specific program by name using GET
+@app.route("/search", methods=["GET"])
+def search_program():
+    """This function searches for a program by its name"""
+
+    # Assigning default value of empty string("") to avoid crashing in case keyword isn't provided
+    keyword = request.args.get("keyword", "")
+
+    programs = Program.query.filter(Program.name.ilike(f"%{keyword}%")).all()
+    return [
+        {"id": p.id, "name": p.name, "description": p.description}
+        for p in programs
+    ], 200
