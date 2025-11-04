@@ -120,3 +120,27 @@ def delete_course(course_id):
         return {
             "error": "The request could not be completed as it conflicts with the current state of the resource."}, 409
 
+
+# Assigning a teacher to a course
+@app.route("/<int:course_id>/assign-teacher/<int:teacher_id>", methods=["POST"])
+def assign_teacher(course_id, teacher_id):
+    """This function assigns a teacher to a course"""
+    course = Course.query.get(course_id)
+    teacher = User.query.get(teacher_id)
+
+    if not course or not teacher:
+        return {"error": "Course or Teacher not found"}, 404
+
+    if teacher in course.teachers:
+        return {"message": "Teacher already assigned"}, 409
+
+    # First accessing the instrumented list course.teacher and then appending the new teacher to it
+    course.teachers.append(teacher)
+    try:
+        db.session.commit()
+        return {"message": f"Teacher '{teacher.name}' assigned to '{course.name}'"}, 200
+    except SQLAlchemyError:
+        db.session.rollback()
+        return {
+            "error": "The request could not be completed as it conflicts with the current state of the resource."}, 409
+

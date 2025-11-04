@@ -77,7 +77,7 @@ class Course(db.Model):
     created_by_user = db.relationship("User", back_populates="courses_created")
 
     # Defining Many-to-Many Relationships as students and teachers can have many courses and courses can have many students
-    # enrolled as well as multiple quizzes and assignments
+    # enrolled as well as multiple quizzes and assignments which will be instrumented lists
     teachers = db.relationship("User", secondary="teacher_course", back_populates="teaching_courses")
     students = db.relationship("User", secondary="student_course", back_populates="enrolled_courses")
 
