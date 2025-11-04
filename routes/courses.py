@@ -235,3 +235,18 @@ def search_courses():
 
     return [{"id": c.id, "name": c.name, "code": c.code} for c in courses], 200
 
+# Getting course statistics using GET
+@app.route("/<int:course_id>/stats", methods=["GET"])
+def course_stats(course_id):
+    """This function gets the basic course statistics"""
+    course = Course.query.get(course_id)
+    if not course:
+        return {"error": "Course not found"}, 404
+
+    return {
+        "course": course.name,
+        "total_teachers": len(course.teachers),
+        "total_students": len(course.students),
+        "total_quizzes": len(course.quizzes),
+        "total_assignments": len(course.assignments),
+    }, 200
