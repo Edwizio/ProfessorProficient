@@ -67,9 +67,7 @@ def create_course():
 @app.route("/<int:course_id>", methods=["GET"])
 def get_course(course_id):
     """This function returns a specific course based on its ID"""
-    course = Course.query.get(course_id)
-    if not course:
-        return {"error": "Course not found"}, 404 # Resource not found
+    course = Course.query.get_or_404(course_id) # Using got_or_404() for automatic error handling
 
     return {
         "id": course.id,
@@ -80,3 +78,25 @@ def get_course(course_id):
         "created_by": course.created_by,
     }, 200 # Successful fetch
 
+
+# Updating the course attributes using PUT
+@app.route("/<int:course_id>", methods=["PUT"])
+def update_course(course_id):
+    """This function updates a course using its ID."""
+    course = Course.query.get_or_404(course_id) # Using got_or_404() for automatic error handling
+
+    data = request.get_json()
+
+    # Assigning the new values from the JSON to the program object other if the param exists, otherwise keeping the original value
+    course.name = data.get("name", course.name)
+    course.code = data.get("code", course.code)
+    course.credit_hours = data.get("credit_hours", course.credit_hours)
+    course.program_id = data.get("program_id", course.program_id)
+
+    # Error handling while adding the new course to the database to avoid crashing in case of any database error
+    try:
+        db.session.commit()
+        return {"message": f"Course '{course.name}' updated successfully"}, 200
+    except SQLAlchemyError:
+        return {
+            "error": "The request could not be completed as it conflicts with the current state of the resource."}, 409
