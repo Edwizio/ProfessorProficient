@@ -192,3 +192,29 @@ def enroll_student(course_id, student_id):
     except SQLAlchemyError:
         return {
             "error": "The request could not be completed as it conflicts with the current state of the resource."}, 409
+
+
+# Removing a student from a course using DELETE
+@app.route("/<int:course_id>/remove-student/<int:teacher_id>", methods=["DELETE"])
+def remove_student(course_id, student_id):
+    """This function deletes a student from a course"""
+    course = Course.query.get(course_id)
+    student = User.query.get(student_id)
+
+    if not course or not student:
+        return {"error": "Course or Student not found"}, 404
+
+    # Checking if the student is not assigned
+    if student not in course.students:
+        return {"message": "Student not assigned to this course"}, 400
+
+    # Removing from the database using instrumented list course.students and remove method
+    course.teachers.remove(student)
+    try:
+        db.session.commit()
+        return {"message": f"Teacher '{student.name}' removed from '{course.name}'"}, 200
+    except SQLAlchemyError:
+        db.session.rollback()
+        return {
+            "error": "The request could not be completed as it conflicts with the current state of the resource."}, 409
+
