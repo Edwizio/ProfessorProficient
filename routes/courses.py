@@ -100,3 +100,23 @@ def update_course(course_id):
     except SQLAlchemyError:
         return {
             "error": "The request could not be completed as it conflicts with the current state of the resource."}, 409
+
+
+# Deleting a course using DELETE
+@app.route("/<int:course_id>", methods=["DELETE"])
+def delete_course(course_id):
+    """This function deletes a specific course based on its ID."""
+    course = Course.query.get(course_id)
+    if not course:
+        return {"error": "Course not found"}, 404
+
+    # Deleting a course from the database
+    db.session.delete(course)
+    # Error handling while adding the new course to the database to avoid crashing in case of any database error
+    try:
+        db.session.commit()
+        return {"message": f"Course '{course.name}' deleted successfully"}, 200
+    except SQLAlchemyError:
+        return {
+            "error": "The request could not be completed as it conflicts with the current state of the resource."}, 409
+

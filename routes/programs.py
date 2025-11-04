@@ -85,7 +85,7 @@ def update_program(program_id):
 # Deleting a specific program using DELETE
 @app.route("/<int:program_id>", methods=["DELETE"])
 def delete_program(program_id):
-    """This function deletes a specific program based in its ID."""
+    """This function deletes a specific program based on its ID."""
 
     program = Program.query.get_or_404(program_id) # Using got_or_404() for automatic error handling
 
