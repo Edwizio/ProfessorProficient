@@ -12,7 +12,7 @@ def get_courses():
 
     # Error handling in case of no courses in the database
     if not courses:
-        return {"message": "No courses found"}, 200
+        return {"message": "No courses found"}, 200 # Used for GET(Successful fetch)
 
     return [
         {
@@ -57,7 +57,26 @@ def create_course():
     # Error handling while adding the new course to the database to avoid crashing in case of any database error
     try:
         db.session.commit()
-        return {"message": "Course created successfully", "id": course.id}, 201
+        return {"message": "Course created successfully", "id": course.id}, 201 # used for POST(successful created)
     except SQLAlchemyError:
         return {
             "error": "The request could not be completed as it conflicts with the current state of the resource."}, 409
+
+
+# Getting a course by its ID using GET
+@app.route("/<int:course_id>", methods=["GET"])
+def get_course(course_id):
+    """This function returns a specific course based on its ID"""
+    course = Course.query.get(course_id)
+    if not course:
+        return {"error": "Course not found"}, 404 # Resource not found
+
+    return {
+        "id": course.id,
+        "name": course.name,
+        "code": course.code,
+        "credit_hours": course.credit_hours,
+        "program_id": course.program_id,
+        "created_by": course.created_by,
+    }, 200 # Successful fetch
+
