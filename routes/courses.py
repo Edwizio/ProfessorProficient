@@ -168,3 +168,27 @@ def remove_teacher(course_id, teacher_id):
         db.session.rollback()
         return {
             "error": "The request could not be completed as it conflicts with the current state of the resource."}, 409
+
+
+# Enrolling a student into a course using POST
+@app.route("/<int:course_id>/enroll-student/<int:student_id>", methods=["POST"])
+def enroll_student(course_id, student_id):
+    """This function enrolls a student in a course"""
+    course = Course.query.get(course_id)
+    student = User.query.get(student_id)
+
+    if not course or not student:
+        return {"error": "Course or Student not found"}, 404
+
+    # Checking if the student already exists
+    if student in course.students:
+        return {"message": "Student already enrolled"}, 409
+
+    # Accessing the instrumented list course.student and then using the append method to add a new student in the course
+    course.students.append(student)
+    try:
+        db.session.commit()
+        return {"message": f"Student '{student.name}' enrolled in '{course.name}'"}, 200
+    except SQLAlchemyError:
+        return {
+            "error": "The request could not be completed as it conflicts with the current state of the resource."}, 409
