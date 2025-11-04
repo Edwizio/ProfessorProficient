@@ -1,5 +1,7 @@
-from flask import db
-from ProfessorProficient.data_models import Course
+from flask import db, request
+from sqlalchemy.exc import SQLAlchemyError
+
+from ProfessorProficient.data_models import Course, Program, User
 from ProfessorProficient.app import app
 
 # Getting a list of courses using GET
@@ -23,3 +25,39 @@ def get_courses():
         }
         for c in courses
     ], 200
+
+
+# Creating a new course using POST
+@app.route("/", method=["POST"])
+def create_course():
+    """This function creates a new courses in the database"""
+
+    data = request.get_json()
+    # Checking for input validation
+    if not data.get("name") or not data.get("code") or not data.get("program_id") or not data.get("created_by"):
+        return {"error": "name, code, program_id, and created_by are required"}, 400
+
+    # Making sure that the Program and User exist before adding and connecting the foreign keys
+    if not Program.query.get(data["program_id"]):
+        return {"error": "Program does not exist"}, 404 # Client-side input error
+    if not User.query.get(data["created_by"]):
+        return {"error": "User (creator) does not exist"}, 404 # Resource not found
+
+    # Creating a new Course object
+    course = Course(
+        name=data["name"],
+        code=data["code"],
+        credit_hours=data.get("credit_hours", 3), # Setting the default value to 3 hours
+        program_id=data["program_id"],
+        created_by=data["created_by"],
+    )
+
+    # Adding to the database
+    db.session.add(course)
+    # Error handling while adding the new course to the database to avoid crashing in case of any database error
+    try:
+        db.session.commit()
+        return {"message": "Course created successfully", "id": course.id}, 201
+    except SQLAlchemyError:
+        return {
+            "error": "The request could not be completed as it conflicts with the current state of the resource."}, 409
