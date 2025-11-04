@@ -35,11 +35,11 @@ def create_course():
     data = request.get_json()
     # Checking for input validation
     if not data.get("name") or not data.get("code") or not data.get("program_id") or not data.get("created_by"):
-        return {"error": "name, code, program_id, and created_by are required"}, 400
+        return {"error": "name, code, program_id, and created_by are required"}, 400 # Client-side input error
 
     # Making sure that the Program and User exist before adding and connecting the foreign keys
     if not Program.query.get(data["program_id"]):
-        return {"error": "Program does not exist"}, 404 # Client-side input error
+        return {"error": "Program does not exist"}, 404
     if not User.query.get(data["created_by"]):
         return {"error": "User (creator) does not exist"}, 404 # Resource not found
 

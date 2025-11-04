@@ -1,7 +1,7 @@
 from flask import request, db
 from sqlalchemy.exc import SQLAlchemyError
 
-from ProfessorProficient.data_models import Program
+from ProfessorProficient.data_models import Program, User
 from ProfessorProficient.app import app
 
 
@@ -41,6 +41,9 @@ def create_program():
     if not data.get("name") or not data.get("created_by"):
         return {"error": "Name and created_by are required fields"}, 400
 
+    if not User.query.get(data["created_by"]):
+        return {"error": "User (creator) does not exist"}, 404  # Resource not found
+
     # Creating new Program object
     program = Program(
         name=data["name"],
@@ -50,7 +53,7 @@ def create_program():
 
     # Adding to the database
     db.session.add(program)
-    # Error handling while adding the new user to the database to avoid crashing in case of any database error
+    # Error handling while adding the new program to the database to avoid crashing in case of any database error
     try:
         db.session.commit()
         return {"message": "Program created successfully", "id": program.id}, 201
