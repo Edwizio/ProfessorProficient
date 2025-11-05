@@ -1,7 +1,7 @@
-from flask import db, request
+from flask import request
 from sqlalchemy.exc import SQLAlchemyError
 
-from ProfessorProficient.data_models import Course, Program, User
+from ProfessorProficient.data_models import db, Course, Program, User
 from ProfessorProficient.app import app
 
 # Getting a list of courses using GET

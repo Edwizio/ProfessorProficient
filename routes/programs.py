@@ -1,7 +1,7 @@
-from flask import request, db
+from flask import request
 from sqlalchemy.exc import SQLAlchemyError
 
-from ProfessorProficient.data_models import Program, User
+from ProfessorProficient.data_models import db, Program, User
 from ProfessorProficient.app import app
 
 

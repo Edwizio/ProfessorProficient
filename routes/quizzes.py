@@ -1,8 +1,9 @@
-from flask import db, request
+from flask import request
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy import func
 
 from ProfessorProficient.app import app
-from ProfessorProficient.data_models import Quiz, Course, User
+from ProfessorProficient.data_models import db, Quiz, Course, User
 
 # Getting all quizzes using GET
 @app.route("/", methods=["GET"])
