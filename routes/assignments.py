@@ -77,3 +77,28 @@ def get_assignment(assignment_id):
         "course_id": assignment.course_id,
         "created_by": assignment.created_by
     }, 200
+
+
+# Updating an assignment using its ID with PUT
+@app.route("/<int:assignment_id>", methods=["PUT"])
+def update_assignment(assignment_id):
+    """This function updates the attributes of an assignment using its ID"""
+    assignment = Assignment.query.get(assignment_id)
+    if not assignment:
+        return {"error": "Assignment not found"}, 404
+
+    data = request.get_json()
+
+    # Updating the attributes only if provided
+    assignment.title = data.get("title", assignment.title)
+    assignment.total_marks = data.get("total_marks", assignment.total_marks)
+    assignment.due_date = data.get("due_date", assignment.due_date)
+
+    try:
+        db.session.commit()
+        return {"message": f"Assignment '{assignment.title}' updated successfully"}, 200
+    except SQLAlchemyError:
+        db.session.rollback()
+        return {
+            "error": "The request could not be completed as it conflicts with the current state of the resource."}, 409
+
