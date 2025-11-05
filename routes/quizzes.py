@@ -71,7 +71,7 @@ def create_quiz():
     db.session.add(quiz)
     try:
         db.session.commit()
-        return {"message": "Quiz created successfully", "id": quiz.id}, 201
+        return {"message": f"Quiz {quiz.title} created successfully", "id": quiz.id}, 201
     except SQLAlchemyError:
         db.session.rollback()
         return {
