@@ -59,3 +59,21 @@ def create_assignment():
         db.session.rollback()
         return {
             "error": "The request could not be completed as it conflicts with the current state of the resource."}, 409
+
+
+# Getting a specific assignment by ID uding GET
+@app.route("/<int:assignment_id>", methods=["GET"])
+def get_assignment(assignment_id):
+    """This function returns a specific assignment by its ID"""
+    assignment = Assignment.query.get(assignment_id)
+    if not assignment:
+        return {"error": "Assignment not found"}, 404
+
+    return {
+        "id": assignment.id,
+        "title": assignment.title,
+        "total_marks": assignment.total_marks,
+        "due_date": assignment.due_date.isoformat() if assignment.due_date else None,
+        "course_id": assignment.course_id,
+        "created_by": assignment.created_by
+    }, 200
