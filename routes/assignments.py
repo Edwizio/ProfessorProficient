@@ -121,3 +121,18 @@ def delete_assignment(assignment_id):
         return {
             "error": "The request could not be completed as it conflicts with the current state of the resource."}, 409
 
+
+# Getting all assignments for a specific course using GET
+@app.route("/course/<int:course_id>", methods=["GET"])
+def get_assignments_by_course(course_id):
+    """This function returns a list of all the assignments of a specific course using its ID."""
+
+    # Filtering through the assignment database using the condition where course.id is course_id
+    assignments = Assignment.query.filter(Assignment.course_id == course_id).all()
+    if not assignments:
+        return {"message": f"No assignments found for course ID {course_id}"}, 404
+
+    return [
+        {"id": a.id, "title": a.title, "total_marks": a.total_marks}
+        for a in assignments
+    ], 200
