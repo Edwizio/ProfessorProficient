@@ -127,7 +127,7 @@ def search_quizzes():
     # Assigning default value of empty string("") to avoid crashing in case keyword isn't provided
     keyword = request.args.get("keyword", "")
 
-    # Searching through the database using the case-insensitive .ilike() and | operator
+    # Searching through the database using the case-insensitive .ilike()
     quizzes = Quiz.query.filter(Quiz.title.ilike(f"%{keyword}%")).all()
 
     if not quizzes:

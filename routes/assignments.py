@@ -136,3 +136,24 @@ def get_assignments_by_course(course_id):
         {"id": a.id, "title": a.title, "total_marks": a.total_marks}
         for a in assignments
     ], 200
+
+
+# Searching assignments by keyword using GET
+@app.route("/search", methods=["GET"])
+def search_assignments():
+    """This function searches the database for a particular assignment using its title."""
+
+    # Assigning default value of empty string("") to avoid crashing in case keyword isn't provided
+    keyword = request.args.get("keyword", "")
+    if not keyword:
+        return {"error": "Please provide a search keyword"}, 400
+
+    # Searching through the database using the case-insensitive .ilike()
+    assignments = Assignment.query.filter(Assignment.title.ilike(f"%{keyword}%")).all()
+    if not assignments:
+        return {"message": f"No assignments found matching '{keyword}'"}, 404
+
+    return [
+        {"id": a.id, "title": a.title, "course_id": a.course_id}
+        for a in assignments
+    ], 200
