@@ -226,6 +226,8 @@ def search_courses():
 
     # Assigning default value of empty string("") to avoid crashing in case keyword isn't provided
     keyword = request.args.get("keyword", "")
+
+    # Searching through the database using the case-insensitive .ilike() and | operator
     courses = Course.query.filter(
         (Course.name.ilike(f"%{keyword}%")) | (Course.code.ilike(f"%{keyword}%"))
     ).all()

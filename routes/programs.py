@@ -113,6 +113,7 @@ def search_program():
     # Assigning default value of empty string("") to avoid crashing in case keyword isn't provided
     keyword = request.args.get("keyword", "")
 
+    # Searching through the database using the case-insensitive .ilike()
     programs = Program.query.filter(Program.name.ilike(f"%{keyword}%")).all()
     return [
         {"id": p.id, "name": p.name, "description": p.description}

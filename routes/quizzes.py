@@ -115,3 +115,22 @@ def delete_quiz(quiz_id):
         db.session.rollback()
         return {
             "error": "The request could not be completed as it conflicts with the current state of the resource."}, 409
+
+
+@app.route("/search", methods=["GET"])
+def search_quizzes():
+    """This function searches the database for a particular quiz using its ID."""
+
+    # Assigning default value of empty string("") to avoid crashing in case keyword isn't provided
+    keyword = request.args.get("keyword", "")
+
+    # Searching through the database using the case-insensitive .ilike() and | operator
+    quizzes = Quiz.query.filter(Quiz.title.ilike(f"%{keyword}%")).all()
+
+    if not quizzes:
+        return {"message": "No quizzes found for the given keyword"}, 404
+
+    return [
+        {"id": q.id, "title": q.title, "total_marks": q.total_marks}
+        for q in quizzes
+    ], 200
