@@ -74,3 +74,25 @@ def create_quiz():
         db.session.rollback()
         return {
             "error": "The request could not be completed as it conflicts with the current state of the resource."}, 409
+
+
+# Updating the attributes of a quiz using PUT
+@app.route("/<int:quiz_id>", methods=["PUT"])
+def update_quiz(quiz_id):
+    """This function updates the attributes of a quiz using its ID """
+    quiz = Quiz.query.get(quiz_id)
+    if not quiz:
+        return {"error": "Quiz not found"}, 404
+
+    data = request.get_json()
+    quiz.title = data.get("title", quiz.title)
+    quiz.total_marks = data.get("total_marks", quiz.total_marks)
+    quiz.course_id = data.get("course_id", quiz.course_id)
+
+    try:
+        db.session.commit()
+        return {"message": "Quiz updated successfully"}, 200
+    except SQLAlchemyError:
+        db.session.rollback()
+        return {
+            "error": "The request could not be completed as it conflicts with the current state of the resource."}, 409
