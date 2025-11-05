@@ -79,11 +79,12 @@ def create_quiz():
 # Updating the attributes of a quiz using PUT
 @app.route("/<int:quiz_id>", methods=["PUT"])
 def update_quiz(quiz_id):
-    """This function updates the attributes of a quiz using its ID """
+    """This function updates the attributes of a quiz using its ID"""
     quiz = Quiz.query.get(quiz_id)
     if not quiz:
         return {"error": "Quiz not found"}, 404
 
+    # Assigning the new values from the JSON to the program object other if the param exists, otherwise keeping the original value
     data = request.get_json()
     quiz.title = data.get("title", quiz.title)
     quiz.total_marks = data.get("total_marks", quiz.total_marks)
@@ -92,6 +93,24 @@ def update_quiz(quiz_id):
     try:
         db.session.commit()
         return {"message": "Quiz updated successfully"}, 200
+    except SQLAlchemyError:
+        db.session.rollback()
+        return {
+            "error": "The request could not be completed as it conflicts with the current state of the resource."}, 409
+
+
+# Deleting a quiz using DELETE
+@app.route("/<int:quiz_id>", methods=["DELETE"])
+def delete_quiz(quiz_id):
+    """This function deletes a quiz using its ID."""
+    quiz = Quiz.query.get(quiz_id)
+    if not quiz:
+        return {"error": "Quiz not found"}, 404
+
+    db.session.delete(quiz)
+    try:
+        db.session.commit()
+        return {"message": "Quiz deleted successfully"}, 200
     except SQLAlchemyError:
         db.session.rollback()
         return {
