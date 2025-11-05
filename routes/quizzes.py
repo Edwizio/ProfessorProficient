@@ -53,7 +53,7 @@ def create_quiz():
     if not data.get("title") or not data.get("course_id") or not data.get("created_by"):
         return {"error": "Title, course_id and created_by are required fields"}, 400
 
-    # Validate that Course and User exist that are associated with the quiz
+    # Validating that Course and User exist that are associated with the quiz
     if not Course.query.get(data["course_id"]):
         return {"error": "Invalid course_id"}, 404
     if not User.query.get(data["created_by"]):
@@ -63,6 +63,7 @@ def create_quiz():
     quiz = Quiz(
         title=data["title"],
         total_marks=data.get("total_marks", 100),  # default marks 100
+        due_date = data.get("due_date"),
         course_id=data["course_id"],
         created_by=data["created_by"]
     )
@@ -89,6 +90,7 @@ def update_quiz(quiz_id):
     data = request.get_json()
     quiz.title = data.get("title", quiz.title)
     quiz.total_marks = data.get("total_marks", quiz.total_marks)
+    quiz.due_date = data.get("due_date", quiz.due_date)
     quiz.course_id = data.get("course_id", quiz.course_id)
 
     try:
