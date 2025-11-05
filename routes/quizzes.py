@@ -119,7 +119,7 @@ def delete_quiz(quiz_id):
 
 @app.route("/search", methods=["GET"])
 def search_quizzes():
-    """This function searches the database for a particular quiz using its ID."""
+    """This function searches the database for a particular quiz using its title."""
 
     # Assigning default value of empty string("") to avoid crashing in case keyword isn't provided
     keyword = request.args.get("keyword", "")
@@ -129,6 +129,23 @@ def search_quizzes():
 
     if not quizzes:
         return {"message": "No quizzes found for the given keyword"}, 404
+
+    return [
+        {"id": q.id, "title": q.title, "total_marks": q.total_marks}
+        for q in quizzes
+    ], 200
+
+
+# Getting all quizzes for a specific course using GET
+@app.route("/course/<int:course_id>", methods=["GET"])
+def get_quizzes_by_course(course_id):
+    """This function returns a list of all the quizzes of a specific course using its ID."""
+
+    # Filtering through the quiz database using the condition where course.id is course_id
+    quizzes = Quiz.query.filter(Quiz.course_id == course_id).all()
+
+    if not quizzes:
+        return {"message": "No quizzes found for this course"}, 404
 
     return [
         {"id": q.id, "title": q.title, "total_marks": q.total_marks}
