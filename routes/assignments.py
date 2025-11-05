@@ -102,3 +102,22 @@ def update_assignment(assignment_id):
         return {
             "error": "The request could not be completed as it conflicts with the current state of the resource."}, 409
 
+
+# Deleting an assignment using its ID with DELETE
+@app.route("/<int:assignment_id>", methods=["DELETE"])
+def delete_assignment(assignment_id):
+    """This function deletes an assignment using its ID."""
+    assignment = Assignment.query.get(assignment_id)
+    if not assignment:
+        return {"error": "Assignment not found"}, 404
+
+    # Deleting the assignment
+    db.session.delete(assignment)
+    try:
+        db.session.commit()
+        return {"message": f"Assignment '{assignment.title}' deleted successfully"}, 200
+    except SQLAlchemyError:
+        db.session.rollback()
+        return {
+            "error": "The request could not be completed as it conflicts with the current state of the resource."}, 409
+

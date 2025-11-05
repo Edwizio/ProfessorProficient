@@ -113,7 +113,7 @@ def delete_quiz(quiz_id):
     db.session.delete(quiz)
     try:
         db.session.commit()
-        return {"message": "Quiz deleted successfully"}, 200
+        return {"message": f"Quiz '{quiz.title}' deleted successfully"}, 200
     except SQLAlchemyError:
         db.session.rollback()
         return {
