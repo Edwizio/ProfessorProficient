@@ -3,6 +3,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from ProfessorProficient.data_models import db, User, UserRole
 from ProfessorProficient.app import app
 from sqlalchemy import func
+from werkzeug.security import generate_password_hash
 
 # Creating a route for getting a list for the users from the database
 @app.route("/", methods=["GET"])
@@ -47,11 +48,13 @@ def create_user():
     except KeyError:
         return {"error": f"Invalid role '{data['role']}'. Must be one of {[r.value for r in UserRole]}"}, 400
 
+    # Hashing the password
+    password_hw = generate_password_hash(data["password"])
     # Creating the new User Object to be added in the database
     new_user = User(
         name=data["name"],
         email=data["email"],
-        password=data["password"],
+        password=password_hw,
         role=role_enum
     )
 
@@ -75,7 +78,9 @@ def update_user(user_id):
     # Assigning the new values from the JSON to the user object other if the param exists, otherwise keeping the original value
     user.name = data.get("name", user.name)
     user.email = data.get("email", user.email)
-    user.password = data.get("password", user.password)
+    # Hashing the password
+    password_hw = generate_password_hash(data.get("password"),"")
+    user.password = data.get(password_hw, user.password)
 
     # Checking for validity if role is to be updated as well
     if "role" in data:
