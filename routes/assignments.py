@@ -3,7 +3,7 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from ProfessorProficient.app import app
 from ProfessorProficient.data_models import db, Assignment, Course, User
-
+from sqlalchemy import func
 
 # Getting a list of all assignments using GET
 @app.route("/", methods=["GET"])
@@ -171,3 +171,22 @@ def get_assignments_by_creator(user_id):
         {"id": a.id, "title": a.title, "course_id": a.course_id}
         for a in assignments
     ], 200
+
+
+# Getting count of assignments per course using GET
+@app.route("/stats/per-course", methods=["GET"])
+def assignments_per_course():
+    """This function returns count of assignments per course"""
+
+    # A list of tuples which first extracts the Course ID, then counts the assignments after grouping by course IDs
+    results = db.session.query(
+        Assignment.course_id,
+        func.count(Assignment.id)
+    ).group_by(Assignment.course_id).all()
+
+    return {
+        "assignments_per_course": [
+            {"course_id": c_id, "assignment_count": count}
+            for c_id, count in results
+        ]
+    }, 200
