@@ -157,3 +157,17 @@ def search_assignments():
         {"id": a.id, "title": a.title, "course_id": a.course_id}
         for a in assignments
     ], 200
+
+
+# Getting all assignments created by a specific teacher
+@app.route("/created-by/<int:user_id>", methods=["GET"])
+def get_assignments_by_creator(user_id):
+    """This function gets a list of all the assignments created by a specific teacher"""
+    assignments = Assignment.query.filter(Assignment.created_by == user_id).all()
+    if not assignments:
+        return {"message": f"No assignments created by user ID {user_id}"}, 404
+
+    return [
+        {"id": a.id, "title": a.title, "course_id": a.course_id}
+        for a in assignments
+    ], 200
