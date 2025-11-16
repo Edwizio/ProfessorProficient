@@ -29,6 +29,7 @@ class User(db.Model):
     courses_created = db.relationship("Course", back_populates="created_by_user")
     quizzes_created = db.relationship("Quiz", back_populates="created_by_user")
     assignments_created = db.relationship("Assignment", back_populates="created_by_user")
+    questions_created = db.relationship("Question", back_populates="created_by_user") # Adding new link to questions
 
     # Many-to-many relationships defined, the below variables will serve as the relationship properties,
     # Secondary tells SQLAlchemy that there’s a linking table that connects these two tables in a many-to-many relationship
@@ -154,3 +155,28 @@ class Assignment(db.Model):
 
     def __str__(self):
         return f"The id {self.id} represents the Assignment titled {self.title}"
+
+
+# Adding the Question Table to expand the database and accommodate Gen AI requests for later
+class Question(db.Model):
+    __tablename__ = 'questions'
+
+    id =  db.Column(db.Integer, primary_key=True, autoincrement=True)
+    quiz_id = db.Column(db.Integer, db.ForeignKey('quizzes.id'))
+    assignment_id = db.Column(db.Integer, db.ForeignKey('assignments.id'))
+    created_by = db.Column(db.Integer, db.ForeignKey('users.id'))
+    created_at = db.Column(db.DateTime, server_default=text('CURRENT_TIMESTAMP'))
+
+    # The newer columns pertaining to the questions, their types and marks
+    question_text = db.Column(db.Text, nullable=False) # db.Text used as it can be a large descriptive value
+    question_type = db.Column(db.String(10))
+    marks = db.Column(db.Integer)
+
+    # Defining the relationships between users, quizzes, assignments with questions, answers and the options that can be answered
+    created_by_user = db.relationship("User", back_populates="questions_created")
+    assignment = db.relationship("Assignment", back_populates="questions")
+    quiz = db.relationship("Quiz", back_populates="questions")
+
+    options = db.relationship("QuestionOption", back_populates="question", cascade="all, delete-orphan")
+    student_answers = db.relationship("StudentAnswer", back_populates="question")
+
