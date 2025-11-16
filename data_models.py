@@ -30,6 +30,7 @@ class User(db.Model):
     quizzes_created = db.relationship("Quiz", back_populates="created_by_user")
     assignments_created = db.relationship("Assignment", back_populates="created_by_user")
     questions_created = db.relationship("Question", back_populates="created_by_user") # Adding new link to questions
+    answers = db.relationship("StudentAnswer", back_populates="student") # Adding new link to answers
 
     # Many-to-many relationships defined, the below variables will serve as the relationship properties,
     # Secondary tells SQLAlchemy that there’s a linking table that connects these two tables in a many-to-many relationship
@@ -59,6 +60,11 @@ class Program(db.Model):
     # deleted, the child also gets changed or deleted
     courses = db.relationship("Course", back_populates="program", cascade="all, delete-orphan")
 
+    def __repr__(self):
+        return f"Program (id = {self.id}, name = {self.name})"
+
+    def __str__(self):
+        return f"The id {self.id} represents the Program {self.name} with represents {self.description}"
 
 # Defining the Course model as a class
 class Course(db.Model):
@@ -125,8 +131,12 @@ class Quiz(db.Model):
     course = db.relationship("Course", back_populates="quizzes")
     created_by_user = db.relationship("User", back_populates="quizzes_created")
 
+    # Relationships added for the questions and answers
+    questions = db.relationship("Question", back_populates="quiz", cascade="all, delete-orphan")
+    student_answers = db.relationship("StudentAnswer", backref="quiz")
+
     def __repr__(self):
-        return f"Quiz (id = {self.id}, title = {self.name})"
+        return f"Quiz (id = {self.id}, title = {self.title})"
 
     def __str__(self):
         return f"The id {self.id} represents the Quiz titled {self.title}"
@@ -150,8 +160,12 @@ class Assignment(db.Model):
     course = db.relationship("Course", back_populates="assignments")
     created_by_user = db.relationship("User", back_populates="assignments_created")
 
+    # Relationships added for the questions and answers
+    questions = db.relationship("Question", back_populates="assignment", cascade="all, delete-orphan")
+    student_answers = db.relationship("StudentAnswer", backref="assignment")
+
     def __repr__(self):
-        return f"Assignment (id = {self.id}, title = {self.name})"
+        return f"Assignment (id = {self.id}, title = {self.title})"
 
     def __str__(self):
         return f"The id {self.id} represents the Assignment titled {self.title}"
@@ -162,8 +176,8 @@ class Question(db.Model):
     __tablename__ = 'questions'
 
     id =  db.Column(db.Integer, primary_key=True, autoincrement=True)
-    quiz_id = db.Column(db.Integer, db.ForeignKey('quizzes.id'))
-    assignment_id = db.Column(db.Integer, db.ForeignKey('assignments.id'))
+    quiz_id = db.Column(db.Integer, db.ForeignKey('quizzes.id'), nullable=True)
+    assignment_id = db.Column(db.Integer, db.ForeignKey('assignments.id'), nullable=True)
     created_by = db.Column(db.Integer, db.ForeignKey('users.id'))
     created_at = db.Column(db.DateTime, server_default=text('CURRENT_TIMESTAMP'))
 
@@ -179,4 +193,52 @@ class Question(db.Model):
 
     options = db.relationship("QuestionOption", back_populates="question", cascade="all, delete-orphan")
     student_answers = db.relationship("StudentAnswer", back_populates="question")
+
+    def __repr__(self):
+        return f"Question (id = {self.id}, title = {self.name})"
+
+    def __str__(self):
+        return f"The id {self.id} represents the Question titled {self.title}"
+
+
+# QuestionOption Class defined to introduce a way to facilitate the different options for MCQs
+class QuestionOption(db.Model):
+    __tablename__ = 'question_options'
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    question_id = db.Column(db.Integer, db.ForeignKey('questions.id'), nullable=False)
+
+    option_text = db.Column(db.Text, nullable=False) # the text for the option
+    is_correct = db.Column(db.Boolean, default=False) # whether correct option or not
+    order_index = db.Column(db.Integer, default=0) # number of the option
+
+    question = db.relationship("Question", back_populates="options") # relationship defined for the Question Class
+
+
+# StudentAnswer Class defined for storing the answers submitted by the students
+class StudentAnswer(db.Model):
+    __tablename__ = 'student_answers'
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    question_id = db.Column(db.Integer, db.ForeignKey('questions.id', nullable=False))
+    student_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    # nullable can be true if the question doesn't belong to a quiz and belongs to an assignment
+    quiz_id = db.Column(db.Integer, db.ForeignKey('quizzes.id'), nullable=True)
+    assignment_id = db.Column(db.Integer, db.ForeignKey('assignments.id'), nullable=True)
+
+    selected_option_id = db.Column(db.Integer, db.ForeignKey('question_options.id')) # in case of MCS
+    answer_text = db.Column(db.Text) # In case of descriptive questions
+
+    marks_awarded = db.Column(db.Integer)
+    evaluated_by_ai = db.Column(db.Boolean, default=False)
+    evaluated_by_teacher = db.Column(db.Boolean, default=False)
+
+    feedback = db.Column(db.Text)
+    submitted_at = db.Column(db.DateTime, server_default=text('CURRENT_TIMESTAMP'))
+    attempt_number = db.Column(db.Integer, default=1)
+
+    # Relationships defined
+    question = db.relationship("Question", back_populates="student_answers")
+    student = db.relationship("User", back_populates="answers")
+    selected_option = db.relationship("QuestionOption")
 
