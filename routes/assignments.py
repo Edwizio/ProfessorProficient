@@ -7,7 +7,7 @@ from sqlalchemy import func
 
     # Getting a list of all assignments using GET
 @app.route("/", methods=["GET"])
-def get_questions():
+def get_assignments():
     """This function gets a list of all the assignments in the database"""
     assignments = Assignment.query.all()
     if not assignments:
