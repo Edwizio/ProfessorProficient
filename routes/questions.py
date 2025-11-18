@@ -3,7 +3,7 @@ from sqlalchemy import func
 from sqlalchemy.exc import SQLAlchemyError
 
 from ProfessorProficient.app import app
-from ProfessorProficient.data_models import Question, db, QuestionOption, StudentAnswer
+from ProfessorProficient.data_models import Question, db, QuestionOption
 
 # Getting a list of all questions using GET
 @app.route('/questions', methods=['GET'])
