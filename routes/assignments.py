@@ -5,9 +5,9 @@ from ProfessorProficient.app import app
 from ProfessorProficient.data_models import db, Assignment, Course, User
 from sqlalchemy import func
 
-# Getting a list of all assignments using GET
+    # Getting a list of all assignments using GET
 @app.route("/", methods=["GET"])
-def get_assignemnts():
+def get_questions():
     """This function gets a list of all the assignments in the database"""
     assignments = Assignment.query.all()
     if not assignments:
@@ -61,7 +61,7 @@ def create_assignment():
             "error": "The request could not be completed as it conflicts with the current state of the resource."}, 409
 
 
-# Getting a specific assignment by ID uding GET
+# Getting a specific assignment by ID using GET
 @app.route("/<int:assignment_id>", methods=["GET"])
 def get_assignment(assignment_id):
     """This function returns a specific assignment by its ID"""
