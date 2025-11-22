@@ -5,6 +5,8 @@ from ProfessorProficient.app import app
 from sqlalchemy import func
 from werkzeug.security import generate_password_hash
 
+
+
 # Creating a route for getting a list for the users from the database
 @app.route("/", methods=["GET"])
 def get_users():
