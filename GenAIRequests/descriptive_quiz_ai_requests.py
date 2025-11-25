@@ -12,7 +12,7 @@ class DecriptiveQuestion(BaseModel):
     marks: int
 
 
-# Pydantic model for the descritive quiz request
+# Pydantic model for the descriptive quiz request
 class DescriptiveQuizRequest(BaseModel):
     topic: str
     total_marks: int
