@@ -14,6 +14,7 @@ from langchain_community.document_loaders import TextLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import FAISS
 from langchain_openai import OpenAIEmbeddings, ChatOpenAI
+from quiz_ai_requests import generate_quiz, QuizRequest
 
 load_dotenv()
 
@@ -70,4 +71,14 @@ if __name__ == "__main__":
         # 3. Generate
         response = model.invoke(prompt_template)
 
+
         print("\nAnswer", response.content)
+
+        req = QuizRequest(
+            topic="logic gates",
+            total_marks=10,
+            num_questions=5
+        )
+
+        quiz = generate_quiz(req)
+        print(quiz)
