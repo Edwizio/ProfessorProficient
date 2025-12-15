@@ -2,14 +2,15 @@ import os
 from dotenv import load_dotenv
 from openai import OpenAI
 from pydantic import BaseModel, Field
-from typing import List, Optional
+from typing import List
 
 
 # Pydantic Model defined for a single MCQ Question
 class Question(BaseModel):
-    question: str
-    options: List[str]
-    correct_answer: str
+    """This class defines a BaseModel for the MCQ Question"""
+    question: str = Field(..., description="The text of the question")
+    options: List[str] = Field(..., description="The list of options given as possible answers")
+    correct_answer: str = Field(..., description="The correct answer among the options")
 
 
 # Pydantic Model defined for input parameters for a quiz generation request with two defaults

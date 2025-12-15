@@ -1,4 +1,4 @@
-# rag_history.txt
+# AND_Logic.txt
 '''
 Logic gates are the basic building blocks of digital circuits. They take one or more input signals and produce a single output based on a specific logical rule. Every action performed by a computer, from simple calculations to running complex software, ultimately depends on these tiny electronic decision-makers.
 
@@ -14,7 +14,7 @@ from langchain_community.document_loaders import TextLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import FAISS
 from langchain_openai import OpenAIEmbeddings, ChatOpenAI
-from quiz_ai_requests import generate_quiz, QuizRequest
+from quiz_ai_requests import QuizRequest, QuizResponse
 
 load_dotenv()
 
@@ -22,7 +22,7 @@ API_KEY = os.getenv("OPENAI_API_KEY")
 
 
 def setup_rag_components():
-    # Offline Phase
+    """This function sets up the basic RAG components to be used in the subsequent requests"""
 
     # 1. Load
     loader = TextLoader("AND_Logic.txt")
@@ -30,7 +30,7 @@ def setup_rag_components():
     print(f"Loaded {len(docs)} documents!")
 
     # 2. Split
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=100, chunk_overlap=50)
     chunks = text_splitter.split_documents(docs)
     print(f"Document split into {len(chunks)} chunks!")
 
@@ -47,38 +47,42 @@ def setup_rag_components():
     return retriever, model
 
 
+def generate_quiz_with_rag(req, retriever, model):
+    """Using the function defined above, this function creates a quiz."""
+    # Retrieving the context to be used in the prompt for RAG, but first converting the whole request to JSON object so
+    # that it can be passed as a whole to the retriever object
+    query = req.model_dump_json()
+    docs = retriever.invoke(query)
+    context = "\n\n".join([doc.page_content for doc in docs])
+
+    # Augmenting the context in the prompt
+    prompt = f"""
+    Use ONLY the following context to generate a quiz: {context}
+    
+    """
+
+    # Generating the quiz using context with in the prompt
+    return model.invoke(prompt)
+
+
 if __name__ == "__main__":
-    # Offline
     retriever, model = setup_rag_components()
 
-    # Online
-    while True:
-        user_question = input("\nYour question: ")
-
-        print("Thinking...")
-
-        # 1. Retrieve
-        retrieved_docs = retriever.invoke(user_question)
-
-        context = "\n\n".join([doc.page_content for doc in retrieved_docs])
-
-        # 2. Augment
-        prompt_template = f"""Answer the following question by taking your knowledge AND using the context:
-        {context}
-        Question: {user_question}
-        """
-
-        # 3. Generate
-        response = model.invoke(prompt_template)
-
-
-        print("\nAnswer", response.content)
-
-        req = QuizRequest(
+    req = QuizRequest(
             topic="logic gates",
             total_marks=10,
             num_questions=5
-        )
+    )
 
-        quiz = generate_quiz(req)
-        print(quiz)
+    # Defining model with structured response
+    model_with_structure = model.with_structured_output(QuizResponse)
+
+    # Generating the quiz
+    quiz = generate_quiz_with_rag(req, retriever, model)
+
+    # Pass the quiz text to the structured model
+    response = model_with_structure.invoke(f"Convert the following quiz into the structured QuizResponse format:\n\n{quiz}")
+    print(response)
+
+    json_quiz = response.model_dump_json(indent=2)  # a pretty json string which has 2 indents spacing between each level
+    print(json_quiz)
