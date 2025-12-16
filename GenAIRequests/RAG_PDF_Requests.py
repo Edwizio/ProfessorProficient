@@ -1,11 +1,8 @@
-import os
+from pypdf import PdfReader # importing the loader files
+from ProfessorProficient.GenAIRequests.quiz_ai_requests import API_KEY
 
-
-from dotenv import load_dotenv
-from mammoth.documents import paragraph
 
 # 1. Load PDF with PyPDF
-from pypdf import PdfReader # importing the relevant files
 
 def extract_pages_pdfreader(pdf_path, drop_first=7, drop_last=5):
     """This function extracts the desired pages from the PDF and loads it into a string variable using PyPDF """
@@ -65,11 +62,11 @@ def clean_text(text):
         spaces = line.count(" ")
         junk = total - letters - allowed - spaces
 
-        # OCR / barcode junk detection
+        # Detecting OCR or barcode
         junk_ratio = junk / total
         letter_ratio = letters / total
 
-        # 🔽 Drop OCR garbage lines
+        # remove OCR garbage lines
         if junk_ratio > 0.45:
             continue
         if letter_ratio < 0.2:
@@ -89,15 +86,16 @@ paragraph_splitter = CharacterTextSplitter(
     separator="\n\n",       # key setting: split on empty line
     chunk_size=500,         # or 1000 or whatever you want
     chunk_overlap=50,
-    length_function=len,
+    length_function=len,    # means that the size of chunk is based on number of characters. i.e. length of the text
 )
+# Chunking or making meaningful sections of the text based of splitter we just created
 
-
-
-# Usage:
 
 pages = extract_pages_pdfreader("TBQ_Feher_DigitalLogicbw.pdf")
-cleaned_pages = [clean_text(p) for p in pages]
+cleaned_pages = [clean_text(p) for p in pages] # cleaning the text page wise
+
+from langchain.schema import Document
+
 
 documents = []
 
@@ -105,15 +103,29 @@ for page_idx, page_text in enumerate(cleaned_pages):
     chunks = paragraph_splitter.split_text(page_text)
 
     for chunk_idx, chunk in enumerate(chunks):
-        documents.append({
-            "text": chunk,
-            "metadata": {
-                "page": page_idx + 1,
-                "chunk": chunk_idx
-            }
-        })
+        documents.append(
+            Document(
+                page_content=chunk,
+                metadata={
+                    "page": page_idx + 1,
+                    "chunk": chunk_idx
+                }
+            )
+        )
 
 print("Total chunks:", len(documents))
+
+
+# Embedding and storing, i.e. Creating the vector store using FAISS
+from langchain_community.vectorstores import FAISS
+from langchain_openai import OpenAIEmbeddings, ChatOpenAI
+
+vectorstore = FAISS.from_documents(documents=documents, embedding=OpenAIEmbeddings(model= "text-embedding-3-small",api_key=API_KEY))
+
+retriever = vectorstore.as_retriever() # setup retriever
+
+
+# Printing the results
 
 for i, doc in enumerate(documents[:5]):
     print(f"\n--- Chunk {i} ---")
