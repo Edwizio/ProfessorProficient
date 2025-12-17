@@ -1,5 +1,10 @@
 from pypdf import PdfReader # importing the loader files
-from ProfessorProficient.GenAIRequests.quiz_ai_requests import API_KEY
+from ProfessorProficient.GenAIRequests.quiz_ai_requests import API_KEY, QuizResponse, QuizRequest, Question
+import re # importing re(regex for cleaning)
+import unicodedata # to clean the unicode data
+from langchain_text_splitters import CharacterTextSplitter
+
+from langchain_core.documents import Document
 
 
 # 1. Load PDF with PyPDF
@@ -23,8 +28,6 @@ def extract_pages_pdfreader(pdf_path, drop_first=7, drop_last=5):
 
 
 # 2. Cleaning the text to get rid of non ASCII characters
-import re
-import unicodedata
 
 # Symbols we ALLOW in logic / CS textbooks
 ALLOWED_SYMBOLS = set("+-=*/()[]{}<>≤≥≈≠→←↔∧∨¬|&^.,:;")
@@ -80,7 +83,6 @@ def clean_text(text):
 
 
 # 3. Splitting using Langchain Splitters
-from langchain_text_splitters import CharacterTextSplitter
 
 paragraph_splitter = CharacterTextSplitter(
     separator="\n\n",       # key setting: split on empty line
@@ -93,9 +95,6 @@ paragraph_splitter = CharacterTextSplitter(
 
 pages = extract_pages_pdfreader("TBQ_Feher_DigitalLogicbw.pdf")
 cleaned_pages = [clean_text(p) for p in pages] # cleaning the text page wise
-
-from langchain.schema import Document
-
 
 documents = []
 
@@ -129,5 +128,8 @@ retriever = vectorstore.as_retriever() # setup retriever
 
 for i, doc in enumerate(documents[:5]):
     print(f"\n--- Chunk {i} ---")
-    print("Page:", doc["metadata"]["page"])
-    print(doc["text"][:])
+    print("Page:", doc.metadata["page"])
+    print(doc.page_content[:])
+
+
+
