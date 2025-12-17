@@ -1,10 +1,16 @@
 from pypdf import PdfReader # importing the loader files
 from ProfessorProficient.GenAIRequests.quiz_ai_requests import API_KEY, QuizResponse, QuizRequest, Question
 import re # importing re(regex for cleaning)
-import unicodedata # to clean the unicode data
+import unicodedata # to clean the Unicode data
 from langchain_text_splitters import CharacterTextSplitter
 
-from langchain_core.documents import Document
+from langchain_openai import ChatOpenAI, OpenAIEmbeddings # for AI model object and embeddings
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.output_parsers import PydanticOutputParser # parsing the Pydantic models using langchain parsers
+
+from langchain_community.vectorstores import FAISS # for embedding and vector stores
+
+from langchain_core.documents import Document # for the chunking model
 
 
 # 1. Load PDF with PyPDF
@@ -116,20 +122,117 @@ print("Total chunks:", len(documents))
 
 
 # Embedding and storing, i.e. Creating the vector store using FAISS
-from langchain_community.vectorstores import FAISS
-from langchain_openai import OpenAIEmbeddings, ChatOpenAI
 
 vectorstore = FAISS.from_documents(documents=documents, embedding=OpenAIEmbeddings(model= "text-embedding-3-small",api_key=API_KEY))
 
 retriever = vectorstore.as_retriever() # setup retriever
 
+# Creating the output parser to be used in the RAG
+parser = PydanticOutputParser(pydantic_object=QuizResponse)
 
-# Printing the results
+# Defining the LLM with low temperature initially
+llm = ChatOpenAI(
+    model="gpt-4o-mini",
+    temperature=0.3,
+    api_key=API_KEY
+)
 
-for i, doc in enumerate(documents[:5]):
-    print(f"\n--- Chunk {i} ---")
-    print("Page:", doc.metadata["page"])
-    print(doc.page_content[:])
+# Defining the prompt using ChatPromptTemplate to use variables inside the prompt
+prompt = ChatPromptTemplate.from_template("""
+You are an undergrad level instructor of Digital Logic Design creating a multiple-choice quiz.
 
+CONTEXT:
+{context}
+
+QUIZ PARAMETERS:
+Topic: {topic}
+Number of questions: {num_questions}
+Total marks: {total_marks}
+
+{format_instructions}
+""")
+
+
+def generate_quiz_rag_plus_llm(request, retriever):
+    """This function implements the RAG functionality to generate the quiz taking the QuizRequest and retriever"""
+
+    # Retrieving relevant chunks
+    docs = retriever.invoke(request.topic)
+
+    # Combining retrieved context
+    context = "\n\n".join(
+        f"(Page {d.metadata['page']}) {d.page_content}"
+        for d in docs
+    )
+
+    # Building the prompt
+
+    messages = prompt.format_messages(
+        context=context,
+        topic=request.topic,
+        num_questions=request.num_questions,
+        total_marks=request.total_marks,
+        format_instructions=parser.get_format_instructions(),
+    )
+
+    # Invoking using the LLM
+    response = llm.invoke(messages)
+
+    # returning the parsed response
+    return parser.parse(response.content)
+
+def generate_quiz_rag_only(request, retriever):
+    """This function instructs the prompt to use the RAG only"""
+    query = request.model_dump_json()
+    docs = retriever.invoke(query)
+    context = "\n\n".join([doc.page_content for doc in docs])
+
+    # Augmenting the context in the prompt
+    prompt_text = f"""
+    You are an undergrad level instructor of Digital Logic Design.
+
+    Use ONLY the following context to generate a quiz.
+    CONTEXT:
+    {context}
+
+    QUIZ
+    PARAMETERS:
+    Topic: {request.topic}
+    Number
+    of
+    questions: {request.num_questions}
+    Total
+    marks: {request.total_marks}
+
+    {parser.get_format_instructions()}
+    """
+
+    response = llm.invoke(prompt_text) # invoking the llm
+
+    return parser.parse(response.content) # parsing the response to get the correct structure
+
+# the dunder main
+if __name__ == "__main__":
+
+    # Printing the results
+    #for i, doc in enumerate(documents[:5]):
+        #print(f"\n--- Chunk {i} ---")
+        #print("Page:", doc.metadata["page"])
+        #print(doc.page_content[:])
+
+    quiz_request = QuizRequest(
+        topic="logic gates",
+        num_questions=5,
+        total_marks=10
+    )
+
+    quiz = generate_quiz_rag_only(quiz_request, retriever)
+
+    print(quiz.title)
+    for q in quiz.questions:
+        print("\nQ:", q.question)
+        for opt in q.options:
+            print("-", opt)
+            print("✔ Answer:", q.correct_answer)
 
 
