@@ -3,10 +3,10 @@ import os
 from dotenv import load_dotenv
 from openai import OpenAI
 from pydantic import BaseModel, Field
-from typing import List, Optional
+from typing import List
 
 # Pydantic model for a descriptive question
-class DecriptiveQuestion(BaseModel):
+class DescriptiveQuestion(BaseModel):
     question: str
     correct_answer: str
     marks: int
