@@ -181,6 +181,7 @@ def generate_quiz_rag_plus_llm(request, retriever):
     # returning the parsed response
     return parser.parse(response.content)
 
+
 def generate_quiz_rag_only(request, retriever):
     """This function instructs the prompt to use the RAG only"""
     query = request.model_dump_json()
@@ -222,17 +223,17 @@ if __name__ == "__main__":
 
     quiz_request = QuizRequest(
         topic="logic gates",
-        num_questions=5,
+        num_questions=10,
         total_marks=10
     )
 
-    quiz = generate_quiz_rag_only(quiz_request, retriever)
+    quiz = generate_quiz_rag_plus_llm(quiz_request, retriever)
 
     print(quiz.title)
     for q in quiz.questions:
         print("\nQ:", q.question)
         for opt in q.options:
             print("-", opt)
-            print("✔ Answer:", q.correct_answer)
+        print("✔ Answer:", q.correct_answer)
 
 

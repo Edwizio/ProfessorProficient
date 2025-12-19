@@ -220,7 +220,7 @@ class StudentAnswer(db.Model):
     __tablename__ = 'student_answers'
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    question_id = db.Column(db.Integer, db.ForeignKey('questions.id', nullable=False))
+    question_id = db.Column(db.Integer, db.ForeignKey('questions.id'), nullable=False)
     student_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     # nullable can be true if the question doesn't belong to a quiz and belongs to an assignment
     quiz_id = db.Column(db.Integer, db.ForeignKey('quizzes.id'), nullable=True)
@@ -239,6 +239,6 @@ class StudentAnswer(db.Model):
 
     # Relationships defined
     question = db.relationship("Question", back_populates="student_answers")
-    student = db.relationship("User", back_populates="answers")
-    selected_option = db.relationship("QuestionOption")
+    student = db.relationship("User", back_populates="answers") # answers is an attribute on the User model
+    selected_option = db.relationship("QuestionOption", back_populates="question_options")
 

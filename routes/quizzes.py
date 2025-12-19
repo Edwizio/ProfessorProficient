@@ -1,12 +1,13 @@
-from flask import request
+from flask import request, Blueprint
 from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy import func
 
-from ProfessorProficient.app import app
 from ProfessorProficient.data_models import db, Quiz, Course, User
 
+# Defining blueprint to be used in the app later
+quizzes_bp = Blueprint("quizzes",__name__)
+
 # Getting all quizzes using GET
-@app.route("/", methods=["GET"])
+@quizzes_bp.route("/", methods=["GET"])
 def get_quizzes():
     """This function returns a list of all quizzes"""
     quizzes = Quiz.query.all()
@@ -27,7 +28,7 @@ def get_quizzes():
 
 
 # Getting a specific quiz using its IT and GET
-@app.route("/<int:quiz_id>", methods=["GET"])
+@quizzes_bp.route("/<int:quiz_id>", methods=["GET"])
 def get_quiz(quiz_id):
     """This function returns a specific quiz by its ID"""
     quiz = Quiz.query.get(quiz_id)
@@ -45,7 +46,7 @@ def get_quiz(quiz_id):
 
 
 # Creating a new quiz using POST
-@app.route("/", methods=["POST"])
+@quizzes_bp.route("/", methods=["POST"])
 def create_quiz():
     """This function creates a new quiz in the database"""
     data = request.get_json()
@@ -79,7 +80,7 @@ def create_quiz():
 
 
 # Updating the attributes of a quiz using PUT
-@app.route("/<int:quiz_id>", methods=["PUT"])
+@quizzes_bp.route("/<int:quiz_id>", methods=["PUT"])
 def update_quiz(quiz_id):
     """This function updates the attributes of a quiz using its ID"""
     quiz = Quiz.query.get(quiz_id)
@@ -103,7 +104,7 @@ def update_quiz(quiz_id):
 
 
 # Deleting a quiz using DELETE
-@app.route("/<int:quiz_id>", methods=["DELETE"])
+@quizzes_bp.route("/<int:quiz_id>", methods=["DELETE"])
 def delete_quiz(quiz_id):
     """This function deletes a quiz using its ID."""
     quiz = Quiz.query.get(quiz_id)
@@ -120,7 +121,7 @@ def delete_quiz(quiz_id):
             "error": "The request could not be completed as it conflicts with the current state of the resource."}, 409
 
 
-@app.route("/search", methods=["GET"])
+@quizzes_bp.route("/search", methods=["GET"])
 def search_quizzes():
     """This function searches the database for a particular quiz using its title."""
 
@@ -140,7 +141,7 @@ def search_quizzes():
 
 
 # Getting all quizzes for a specific course using GET
-@app.route("/course/<int:course_id>", methods=["GET"])
+@quizzes_bp.route("/course/<int:course_id>", methods=["GET"])
 def get_quizzes_by_course(course_id):
     """This function returns a list of all the quizzes of a specific course using its ID."""
 

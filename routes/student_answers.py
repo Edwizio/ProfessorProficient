@@ -3,8 +3,8 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from ProfessorProficient.data_models import StudentAnswer, db
 
+# Defining blueprint to be used in the app later
 student_answers_bp = Blueprint("student_answers", __name__)
-
 
 # Getting all answers using GET
 @student_answers_bp.route("/", methods=["GET"])

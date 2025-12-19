@@ -1,12 +1,14 @@
-from flask import request
+from flask import Blueprint, request
 from sqlalchemy import func
 from sqlalchemy.exc import SQLAlchemyError
 
-from ProfessorProficient.app import app
 from ProfessorProficient.data_models import Question, db, QuestionOption
 
+# Defining blueprint to be used in the app later
+questions_bp = Blueprint("questions",__name__)
+
 # Getting a list of all questions using GET
-@app.route('/questions', methods=['GET'])
+@questions_bp.route('/', methods=['GET'])
 def get_questions():
     """This function gets a list of all the questions with optional filters based on quiz_id, assignment_id, created_by,
     question_type, min or max marks and keywords"""
@@ -60,7 +62,7 @@ def get_questions():
 
 
 # Creating a new question using POST
-@app.route("/questions", methods=["POST"])
+@questions_bp.route("/", methods=["POST"])
 def create_question():
     """This function creates a new question in the database based on the parameters provided"""
 
@@ -107,7 +109,7 @@ def create_question():
 
 
 # Updating a question using PUT
-@app.route("/questions/<int:question_id>", methods=["PUT"])
+@questions_bp.route("/<int:question_id>", methods=["PUT"])
 def update_question(question_id):
     """This function updates a question's parameters using its ID"""
 
@@ -129,7 +131,7 @@ def update_question(question_id):
 
 
 # Deleting a question using DELETE
-@app.route("/questions/<int:question_id>", methods=["DELETE"])
+@questions_bp.route("/<int:question_id>", methods=["DELETE"])
 def delete_question(question_id):
     """This function deletes question by ID"""
 
@@ -146,7 +148,7 @@ def delete_question(question_id):
 
 
 # Getting a question using GET
-@app.route("/questions/<int:question_id>", methods=["GET"])
+@questions_bp.route("/<int:question_id>", methods=["GET"])
 def get_question_by_id(question_id):
     """This function returns a question based on its ID along with its question fields, list of options and count of answers"""
 
@@ -175,7 +177,7 @@ def get_question_by_id(question_id):
 
 
 # Searching for a questions using GET
-@app.route("/questions/search", methods=["GET"])
+@questions_bp.route("/search", methods=["GET"])
 def search_questions():
     """This function searches inside the question_text parameter, optional filters can be question_type, min_marks or
     max_marks"""
@@ -215,7 +217,7 @@ def search_questions():
 
 
 # Counting the questions using GET
-@app.route("/questions/count", methods=["GET"])
+@questions_bp.route("/count", methods=["GET"])
 def count_questions():
     """This function returns count of questions grouped by question_type"""
 

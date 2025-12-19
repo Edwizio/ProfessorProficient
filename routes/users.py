@@ -1,14 +1,14 @@
-from flask import request
+from flask import request, Blueprint
 from sqlalchemy.exc import SQLAlchemyError
 from ProfessorProficient.data_models import db, User, UserRole
-from ProfessorProficient.app import app
 from sqlalchemy import func
 from werkzeug.security import generate_password_hash
 
-
+# Defining blueprint to be used in the app later
+users_bp = Blueprint("users",__name__)
 
 # Creating a route for getting a list for the users from the database
-@app.route("/", methods=["GET"])
+@users_bp.route("/", methods=["GET"])
 def get_users():
     """This function fetches all users with optional filters by role or name."""
 
@@ -35,7 +35,7 @@ def get_users():
 
 
 # Adding a new User to the database
-@app.route("/", methods=["POST"])
+@users_bp.route("/", methods=["POST"])
 def create_user():
     """This function creates a new user (admin, teacher, or student)."""
     data = request.get_json()
@@ -71,7 +71,7 @@ def create_user():
     return {"message": f"{new_user.role.value.title()} '{new_user.name}' created successfully"}, 201
 
 # Updating a user's different attributes using PUT method instead of POST to avoid creating a new route unnecessarily
-@app.route("/<int:user_id>", methods=["PUT"])
+@users_bp.route("/<int:user_id>", methods=["PUT"])
 def update_user(user_id):
     """This function updates to provided user details."""
     user = User.query.get_or_404(user_id) # Using got_or_404() for automatic error handling
@@ -101,7 +101,7 @@ def update_user(user_id):
 
 
 # Deleting an existing user from the database
-@app.route("/<int:user_id>", methods=["DELETE"])
+@users_bp.route("/<int:user_id>", methods=["DELETE"])
 def delete_user(user_id):
     """This function deletes a user by ID."""
     user = User.query.get_or_404(user_id) # Using got_or_404() for automatic error handling
@@ -119,7 +119,7 @@ def delete_user(user_id):
 
 
 # Searching the database based on the provided name or email
-@app.route("/search", methods=["GET"])
+@users_bp.route("/search", methods=["GET"])
 def search_users():
     """This function searches users by name or email."""
     keyword = request.args.get("q")
@@ -145,7 +145,7 @@ def search_users():
 
 
 # Finding a user based on it's ID
-@app.route("/<int:user_id>", methods=["GET"])
+@users_bp.route("/<int:user_id>", methods=["GET"])
 def get_user_by_id(user_id):
     """This function fetches a specific user by it's ID."""
     user = User.query.get_or_404(user_id) # Using got_or_404() for automatic error handling
@@ -160,7 +160,7 @@ def get_user_by_id(user_id):
 
 
 # Counting the total number of users in the database by role
-@app.route("/count", methods=["GET"])
+@users_bp.route("/count", methods=["GET"])
 def count_users():
     """This function returns the total count of users by role using the func utility that lets us call SQL functions in
     Python like sum(), count, max() etc """

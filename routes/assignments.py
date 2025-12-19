@@ -1,12 +1,14 @@
-from flask import request
+from flask import request, Blueprint
 from sqlalchemy.exc import SQLAlchemyError
 
-from ProfessorProficient.app import app
 from ProfessorProficient.data_models import db, Assignment, Course, User
 from sqlalchemy import func
 
-    # Getting a list of all assignments using GET
-@app.route("/", methods=["GET"])
+# Defining blueprint to be used in the app later
+assignments_bp = Blueprint("assignments",__name__)
+
+# Getting a list of all assignments using GET
+@assignments_bp.route("/", methods=["GET"])
 def get_assignments():
     """This function gets a list of all the assignments in the database"""
     assignments = Assignment.query.all()
@@ -27,7 +29,7 @@ def get_assignments():
 
 
 # Creating a new assignment using POST
-@app.route("/", methods=["POST"])
+@assignments_bp.route("/", methods=["POST"])
 def create_assignment():
     """This function creates a new assignment in the database"""
     data = request.get_json()
@@ -62,7 +64,7 @@ def create_assignment():
 
 
 # Getting a specific assignment by ID using GET
-@app.route("/<int:assignment_id>", methods=["GET"])
+@assignments_bp.route("/<int:assignment_id>", methods=["GET"])
 def get_assignment(assignment_id):
     """This function returns a specific assignment by its ID"""
     assignment = Assignment.query.get(assignment_id)
@@ -80,7 +82,7 @@ def get_assignment(assignment_id):
 
 
 # Updating an assignment using its ID with PUT
-@app.route("/<int:assignment_id>", methods=["PUT"])
+@assignments_bp.route("/<int:assignment_id>", methods=["PUT"])
 def update_assignment(assignment_id):
     """This function updates the attributes of an assignment using its ID"""
     assignment = Assignment.query.get(assignment_id)
@@ -104,7 +106,7 @@ def update_assignment(assignment_id):
 
 
 # Deleting an assignment using its ID with DELETE
-@app.route("/<int:assignment_id>", methods=["DELETE"])
+@assignments_bp.route("/<int:assignment_id>", methods=["DELETE"])
 def delete_assignment(assignment_id):
     """This function deletes an assignment using its ID."""
     assignment = Assignment.query.get(assignment_id)
@@ -123,7 +125,7 @@ def delete_assignment(assignment_id):
 
 
 # Getting all assignments for a specific course using GET
-@app.route("/course/<int:course_id>", methods=["GET"])
+@assignments_bp.route("/course/<int:course_id>", methods=["GET"])
 def get_assignments_by_course(course_id):
     """This function returns a list of all the assignments of a specific course using its ID."""
 
@@ -139,7 +141,7 @@ def get_assignments_by_course(course_id):
 
 
 # Searching assignments by keyword using GET
-@app.route("/search", methods=["GET"])
+@assignments_bp.route("/search", methods=["GET"])
 def search_assignments():
     """This function searches the database for a particular assignment using its title."""
 
@@ -160,7 +162,7 @@ def search_assignments():
 
 
 # Getting all assignments created by a specific teacher
-@app.route("/created-by/<int:user_id>", methods=["GET"])
+@assignments_bp.route("/created-by/<int:user_id>", methods=["GET"])
 def get_assignments_by_creator(user_id):
     """This function gets a list of all the assignments created by a specific teacher"""
     assignments = Assignment.query.filter(Assignment.created_by == user_id).all()
@@ -174,7 +176,7 @@ def get_assignments_by_creator(user_id):
 
 
 # Getting count of assignments per course using GET
-@app.route("/stats/per-course", methods=["GET"])
+@assignments_bp.route("/stats/per-course", methods=["GET"])
 def assignments_per_course():
     """This function returns count of assignments per course"""
 

@@ -1,11 +1,13 @@
-from flask import request
+from flask import request, Blueprint
 from sqlalchemy.exc import SQLAlchemyError
 
 from ProfessorProficient.data_models import db, Course, Program, User
-from ProfessorProficient.app import app
+
+# Defining blueprint to be used in the app later
+courses_bp = Blueprint("courses",__name__)
 
 # Getting a list of courses using GET
-@app.route("/", methods=["GET"])
+@courses_bp.route("/", methods=["GET"])
 def get_courses():
     """This function returns a list of all the available courses"""
     courses = Course.query.all()
@@ -28,7 +30,7 @@ def get_courses():
 
 
 # Creating a new course using POST
-@app.route("/", method=["POST"])
+@courses_bp.route("/", methods=["POST"])
 def create_course():
     """This function creates a new courses in the database"""
 
@@ -64,7 +66,7 @@ def create_course():
 
 
 # Getting a course by its ID using GET
-@app.route("/<int:course_id>", methods=["GET"])
+@courses_bp.route("/<int:course_id>", methods=["GET"])
 def get_course(course_id):
     """This function returns a specific course based on its ID"""
     course = Course.query.get_or_404(course_id) # Using got_or_404() for automatic error handling
@@ -80,7 +82,7 @@ def get_course(course_id):
 
 
 # Updating the course attributes using PUT
-@app.route("/<int:course_id>", methods=["PUT"])
+@courses_bp.route("/<int:course_id>", methods=["PUT"])
 def update_course(course_id):
     """This function updates a course using its ID."""
     course = Course.query.get_or_404(course_id) # Using got_or_404() for automatic error handling
@@ -103,7 +105,7 @@ def update_course(course_id):
 
 
 # Deleting a course using DELETE
-@app.route("/<int:course_id>", methods=["DELETE"])
+@courses_bp.route("/<int:course_id>", methods=["DELETE"])
 def delete_course(course_id):
     """This function deletes a specific course based on its ID."""
     course = Course.query.get(course_id)
@@ -122,7 +124,7 @@ def delete_course(course_id):
 
 
 # Assigning a teacher to a course using POST
-@app.route("/<int:course_id>/assign-teacher/<int:teacher_id>", methods=["POST"])
+@courses_bp.route("/<int:course_id>/assign-teacher/<int:teacher_id>", methods=["POST"])
 def assign_teacher(course_id, teacher_id):
     """This function assigns a teacher to a course"""
     course = Course.query.get(course_id)
@@ -146,7 +148,7 @@ def assign_teacher(course_id, teacher_id):
 
 
 # Removing a teacher from a course using DELETE
-@app.route("/<int:course_id>/remove-teacher/<int:teacher_id>", methods=["DELETE"])
+@courses_bp.route("/<int:course_id>/remove-teacher/<int:teacher_id>", methods=["DELETE"])
 def remove_teacher(course_id, teacher_id):
     """This function deletes a teacher from a course"""
     course = Course.query.get(course_id)
@@ -171,7 +173,7 @@ def remove_teacher(course_id, teacher_id):
 
 
 # Enrolling a student into a course using POST
-@app.route("/<int:course_id>/enroll-student/<int:student_id>", methods=["POST"])
+@courses_bp.route("/<int:course_id>/enroll-student/<int:student_id>", methods=["POST"])
 def enroll_student(course_id, student_id):
     """This function enrolls a student in a course"""
     course = Course.query.get(course_id)
@@ -195,7 +197,7 @@ def enroll_student(course_id, student_id):
 
 
 # Removing a student from a course using DELETE
-@app.route("/<int:course_id>/remove-student/<int:teacher_id>", methods=["DELETE"])
+@courses_bp.route("/<int:course_id>/remove-student/<int:teacher_id>", methods=["DELETE"])
 def remove_student(course_id, student_id):
     """This function deletes a student from a course"""
     course = Course.query.get(course_id)
@@ -220,7 +222,7 @@ def remove_student(course_id, student_id):
 
 
 # Searching for a course by keyword using GET
-@app.route("/search", methods=["GET"])
+@courses_bp.route("/search", methods=["GET"])
 def search_courses():
     """This function searches for a course by its name or code"""
 
@@ -238,7 +240,7 @@ def search_courses():
     return [{"id": c.id, "name": c.name, "code": c.code} for c in courses], 200
 
 # Getting course statistics using GET
-@app.route("/<int:course_id>/stats", methods=["GET"])
+@courses_bp.route("/<int:course_id>/stats", methods=["GET"])
 def course_stats(course_id):
     """This function gets the basic course statistics"""
     course = Course.query.get(course_id)

@@ -3,6 +3,7 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from ProfessorProficient.data_models import QuestionOption, db
 
+# Defining blueprint to be used in the app later
 question_options_bp = Blueprint("question_options", __name__)
 
 # Getting all options using GET

@@ -1,12 +1,13 @@
-from flask import request
+from flask import request, Blueprint
 from sqlalchemy.exc import SQLAlchemyError
 
 from ProfessorProficient.data_models import db, Program, User
-from ProfessorProficient.app import app
 
+# Defining blueprint to be used in the app later
+programs_bp = Blueprint("programs",__name__)
 
 # Getting a list of all programs using GET
-@app.route("/", methods=["GET"])
+@programs_bp.route("/", methods=["GET"])
 def get_programs():
     """This function returns a list of dictionaries of all programs showing their ID, Name and small description"""
     programs = Program.query.all()
@@ -20,7 +21,7 @@ def get_programs():
 
 
 # Getting a program by its ID using GET
-@app.route("/<int:program_id>")
+@programs_bp.route("/<int:program_id>")
 def get_program(program_id):
     """This function gets a program by its ID"""
     program = Program.query.get_or_404(program_id) # Using got_or_404() for automatic error handling
@@ -33,7 +34,7 @@ def get_program(program_id):
 
 
 # Creating a new program using POST
-@app.route("/", methods=["POST"])
+@programs_bp.route("/", methods=["POST"])
 def create_program():
     data = request.get_json()
 
@@ -62,7 +63,7 @@ def create_program():
 
 
 # Updating a program's different attributes using PUT
-@app.route("/<int:program_id>", methods=["PUT"])
+@programs_bp.route("/<int:program_id>", methods=["PUT"])
 def update_program(program_id):
     """This function updates a program using its ID."""
     program = Program.query.get_or_404(program_id) # Using got_or_404() for automatic error handling
@@ -83,7 +84,7 @@ def update_program(program_id):
 
 
 # Deleting a specific program using DELETE
-@app.route("/<int:program_id>", methods=["DELETE"])
+@programs_bp.route("/<int:program_id>", methods=["DELETE"])
 def delete_program(program_id):
     """This function deletes a specific program based on its ID."""
 
@@ -106,7 +107,7 @@ def delete_program(program_id):
 
 
 # Searching for a specific program by name using GET
-@app.route("/search", methods=["GET"])
+@programs_bp.route("/search", methods=["GET"])
 def search_program():
     """This function searches for a program by its name"""
 
@@ -122,7 +123,7 @@ def search_program():
 
 
 # Course count in each program fetched using GET
-@app.route("/program-course-counts", methods=["GET"])
+@programs_bp.route("/program-course-counts", methods=["GET"])
 def programs_with_course_counts():
     programs = Program.query.all()
     return [
