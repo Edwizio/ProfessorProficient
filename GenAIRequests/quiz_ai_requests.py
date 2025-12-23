@@ -53,9 +53,11 @@ def generate_quiz(request: QuizRequest) -> QuizResponse:
             {"role": "system", "content": SYSTEM_ROLE},
             {"role": "user", "content": user_prompt}
         ],
+
         text_format=QuizResponse
     )
 
+    print(response.usage)
     return response.output_parsed # Ensuring the Python object returned is created by our Pydantic schema
 
 
@@ -71,3 +73,4 @@ if __name__ == "__main__":
     quiz = generate_quiz(req)
 
     print(quiz)
+
