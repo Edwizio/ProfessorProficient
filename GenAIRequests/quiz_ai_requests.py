@@ -57,7 +57,13 @@ def generate_quiz(request: QuizRequest) -> QuizResponse:
         text_format=QuizResponse
     )
 
-    print(response.usage)
+    # Calculating the costs
+    usage = response.usage
+    #print(usage)
+    print(usage.input_tokens)
+    print(usage.output_tokens)
+    print(usage.total_tokens)
+
     return response.output_parsed # Ensuring the Python object returned is created by our Pydantic schema
 
 
