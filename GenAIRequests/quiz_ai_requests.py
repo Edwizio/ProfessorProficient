@@ -4,6 +4,17 @@ from openai import OpenAI
 from pydantic import BaseModel, Field
 from typing import List
 
+MODEL_PRICING = {
+    "gpt-4o-mini": {
+        "input": 0.00015,     # USD per 1K tokens
+        "output": 0.0006
+    },
+    "gpt-5": {
+        "input": 0.01,
+        "output": 0.03
+    }
+}
+
 
 # Pydantic Model defined for a single MCQ Question
 class Question(BaseModel):
@@ -59,10 +70,10 @@ def generate_quiz(request: QuizRequest) -> QuizResponse:
 
     # Calculating the costs
     usage = response.usage
-    #print(usage)
-    print(usage.input_tokens)
-    print(usage.output_tokens)
-    print(usage.total_tokens)
+
+    print(f"Input tokens: {usage.input_tokens} and Input cost: {(usage.input_tokens*0.00015/1000):.6f}")
+    print(f"Output tokens: {usage.output_tokens} and Output cost: {usage.output_tokens*0.0006/1000}")
+    print(f"Total tokens: {usage.total_tokens} and total cost {(usage.input_tokens*0.00015/1000) + (usage.output_tokens*0.0006/1000)}")
 
     return response.output_parsed # Ensuring the Python object returned is created by our Pydantic schema
 
