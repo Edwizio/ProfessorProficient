@@ -52,6 +52,14 @@ def generate_descriptive_quiz(request: DescriptiveQuizRequest) -> DescriptiveQui
         text_format=DescriptiveQuizResponse,
     )
 
+    # Calculating the costs
+    usage = response.usage
+
+    print(f"Input tokens: {usage.input_tokens} and Input cost: {(usage.input_tokens * 0.00015 / 1000):.6f}")
+    print(f"Output tokens: {usage.output_tokens} and Output cost: {(usage.output_tokens * 0.0006 / 1000):.6f}")
+    print(
+        f"Total tokens: {usage.total_tokens} and total cost {((usage.input_tokens * 0.00015 / 1000) + (usage.output_tokens * 0.0006 / 1000)):.6f}")
+
     return response.output_parsed
 
 
