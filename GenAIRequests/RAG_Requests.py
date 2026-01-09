@@ -15,6 +15,8 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import FAISS
 from langchain_openai import OpenAIEmbeddings, ChatOpenAI
 from quiz_ai_requests import QuizRequest, QuizResponse
+from langchain_community.callbacks import get_openai_callback
+
 
 load_dotenv()
 
@@ -40,7 +42,7 @@ def setup_rag_components():
     print("Vector store created successfully")
 
     model = ChatOpenAI(model="gpt-4o-mini", api_key=API_KEY)
-
+    print(f"model: {model.model_name}")
     # setup retriever
     retriever = vectorstore.as_retriever()
 
@@ -61,8 +63,18 @@ def generate_quiz_with_rag(req, retriever, model):
     
     """
 
-    # Generating the quiz using context with in the prompt
-    return model.invoke(prompt)
+    # Tracking the cost and generating the quiz using context with in the prompt
+    with get_openai_callback() as cb:
+        response = model.invoke(prompt)
+
+    cost_info = {
+        "prompt_tokens": cb.prompt_tokens,
+        "completion_tokens": cb.completion_tokens,
+        "total_tokens": cb.total_tokens,
+        "cost_usd": f"{(cb.total_cost):.6f}"
+    }
+
+    return response, cost_info
 
 
 if __name__ == "__main__":
@@ -78,11 +90,12 @@ if __name__ == "__main__":
     model_with_structure = model.with_structured_output(QuizResponse)
 
     # Generating the quiz
-    quiz = generate_quiz_with_rag(req, retriever, model)
+    quiz, costs = generate_quiz_with_rag(req, retriever, model)
 
     # Pass the quiz text to the structured model
     response = model_with_structure.invoke(f"Convert the following quiz into the structured QuizResponse format:\n\n{quiz}")
-    print(response)
+
+    print(costs)
 
     json_quiz = response.model_dump_json(indent=2)  # a pretty json string which has 2 indents spacing between each level
     print(json_quiz)

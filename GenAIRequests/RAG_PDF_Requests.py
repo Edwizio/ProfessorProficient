@@ -1,3 +1,4 @@
+from langchain_community.callbacks import get_openai_callback
 from pypdf import PdfReader # importing the loader files
 from ProfessorProficient.GenAIRequests.quiz_ai_requests import API_KEY, QuizResponse, QuizRequest, Question
 import re # importing re(regex for cleaning)
@@ -175,11 +176,19 @@ def generate_quiz_rag_plus_llm(request, retriever):
         format_instructions=parser.get_format_instructions(),
     )
 
-    # Invoking using the LLM
-    response = llm.invoke(messages)
+    # Tracking the cost and generating the quiz using context with in the prompt
+    with get_openai_callback() as cb:
+        response = llm.invoke(messages)
+
+    cost_info = {
+        "prompt_tokens": cb.prompt_tokens,
+        "completion_tokens": cb.completion_tokens,
+        "total_tokens": cb.total_tokens,
+        "cost_usd": f"{(cb.total_cost):.6f}"
+    }
 
     # returning the parsed response
-    return parser.parse(response.content)
+    return parser.parse(response.content), cost_info
 
 
 def generate_quiz_rag_only(request, retriever):
@@ -208,9 +217,19 @@ def generate_quiz_rag_only(request, retriever):
     {parser.get_format_instructions()}
     """
 
-    response = llm.invoke(prompt_text) # invoking the llm
+    # Tracking the cost and generating the quiz using context with in the prompt
+    with get_openai_callback() as cb:
+        response = llm.invoke(prompt_text)
 
-    return parser.parse(response.content) # parsing the response to get the correct structure
+    cost_info = {
+        "prompt_tokens": cb.prompt_tokens,
+        "completion_tokens": cb.completion_tokens,
+        "total_tokens": cb.total_tokens,
+        "cost_usd": f"{(cb.total_cost):.6f}"
+    }
+
+    return parser.parse(response.content), cost_info # parsing the response to get the correct structure
+
 
 # the dunder main
 if __name__ == "__main__":
@@ -227,13 +246,16 @@ if __name__ == "__main__":
         total_marks=10
     )
 
-    quiz = generate_quiz_rag_plus_llm(quiz_request, retriever)
+    quiz, costs = generate_quiz_rag_plus_llm(quiz_request, retriever)
 
+    print(f"model: {llm.model_name}")
+    print(costs)
     print(quiz.title)
     for q in quiz.questions:
         print("\nQ:", q.question)
         for opt in q.options:
             print("-", opt)
         print("✔ Answer:", q.correct_answer)
+
 
 

@@ -52,6 +52,7 @@ def generate_descriptive_quiz(request: DescriptiveQuizRequest) -> DescriptiveQui
         text_format=DescriptiveQuizResponse,
     )
 
+    print(f"model: {response.model}")
     # Calculating the costs
     usage = response.usage
 
