@@ -1,0 +1,180 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1 class="h3 fw-bold">AI Quiz Generator</h1>
+        <p class="text-muted">Leverage Retrieval-Augmented Generation (RAG) to create smart quizzes from your documents.</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-5">
+        <div class="card shadow-sm border-0 bg-white">
+            <div class="card-body p-4">
+                <h5 class="fw-bold mb-3">Quiz Parameters</h5>
+                <form id="quizGeneratorForm">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Topic</label>
+                        <input type="text" class="form-control" name="topic" placeholder="e.g. Logic Gates, DNA Replication" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Number of Questions</label>
+                        <input type="number" class="form-control" name="num_questions" value="5" min="1" max="20" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Total Marks</label>
+                        <input type="number" class="form-control" name="total_marks" value="10" required>
+                    </div>
+                    <div class="d-grid mt-4">
+                        <button type="submit" class="btn btn-primary py-2 fw-bold" id="generateBtn">
+                            <span id="btnText">Generate Quiz</span>
+                            <span id="btnSpinner" class="spinner-border spinner-border-sm d-none" role="status"></span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <div class="card shadow-sm border-0 mt-4 bg-light">
+            <div class="card-body">
+                <h6 class="fw-bold text-primary"><i class="bi bi-info-circle"></i> How it works</h6>
+                <small class="text-muted d-block mt-2">
+                    Our AI scans the <code>GenAIRequests/</code> directory for relevant course materials. 
+                    It then uses semantic search to find the most relevant context and generates a structured JSON quiz.
+                </small>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-7">
+        <div class="card shadow-sm border-0 h-100" id="resultCard" style="min-height: 400px;">
+            <div class="card-header bg-white border-bottom-0 pt-4 px-4 d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold mb-0">Generated Output</h5>
+                <button class="btn btn-sm btn-outline-secondary d-none" id="copyBtn">Copy JSON</button>
+            </div>
+            <div class="card-body p-4 text-center d-flex flex-column justify-content-center" id="emptyResult">
+                <div class="mb-3">
+                    <i class="bi bi-robot display-1 text-light"></i>
+                </div>
+                <h5 class="text-muted">No quiz generated yet</h5>
+                <p class="text-muted small">Fill out the parameters on the left and click "Generate Quiz" to start the process.</p>
+            </div>
+            <div class="card-body p-4 d-none" id="loadingResult">
+                <div class="text-center">
+                    <div class="spinner-grow text-primary" role="status" style="width: 3rem; height: 3rem;"></div>
+                    <p class="mt-3 fw-semibold">AI is analyzing documents and generating questions...</p>
+                    <p class="text-muted small">This may take 10-20 seconds.</p>
+                </div>
+            </div>
+            <div class="card-body p-0 d-none" id="finalResult">
+                <div class="p-4 bg-dark text-success rounded-0 mb-0" style="max-height: 500px; overflow-y: auto;">
+                    <pre class="mb-0"><code id="jsonOutput" class="small"></code></pre>
+                </div>
+                <div class="card-footer bg-white border-top small text-muted">
+                    <div class="row text-center" id="costInfo">
+                        <!-- Cost info will be injected here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+<script>
+    document.getElementById('quizGeneratorForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const generateBtn = document.getElementById('generateBtn');
+        const btnText = document.getElementById('btnText');
+        const btnSpinner = document.getElementById('btnSpinner');
+        const emptyResult = document.getElementById('emptyResult');
+        const loadingResult = document.getElementById('loadingResult');
+        const finalResult = document.getElementById('finalResult');
+        const jsonOutput = document.getElementById('jsonOutput');
+        const copyBtn = document.getElementById('copyBtn');
+        const costInfo = document.getElementById('costInfo');
+
+        // Reset UI
+        generateBtn.disabled = true;
+        btnText.classList.add('d-none');
+        btnSpinner.classList.remove('d-none');
+        emptyResult.classList.add('d-none');
+        loadingResult.classList.remove('d-none');
+        finalResult.classList.add('d-none');
+        copyBtn.classList.add('d-none');
+
+        const formData = new FormData(e.target);
+        const data = Object.fromEntries(formData.entries());
+
+        try {
+            // Note: We need a backend route that calls generate_quiz_with_rag
+            const response = await fetch('/quizzes/generate-rag', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                
+                // Extract cost info and remove it from main JSON display if desired, 
+                // or just display it separately.
+                const costs = result.costs;
+                // delete result.costs; // Optional: Remove from JSON view if you want it purely separate
+
+                jsonOutput.textContent = JSON.stringify(result, null, 2);
+                
+                // Update Cost Info UI
+                if (costs) {
+                    costInfo.innerHTML = `
+                        <div class="col-md-3 border-end">
+                            <span class="d-block fw-bold text-dark">Model</span>
+                            <span>${costs.model_name || 'N/A'}</span>
+                        </div>
+                        <div class="col-md-3 border-end">
+                            <span class="d-block fw-bold text-dark">Total Tokens</span>
+                            <span>${costs.total_tokens}</span>
+                        </div>
+                        <div class="col-md-3 border-end">
+                            <span class="d-block fw-bold text-dark">Prompt / Compl.</span>
+                            <span>${costs.prompt_tokens} / ${costs.completion_tokens}</span>
+                        </div>
+                        <div class="col-md-3">
+                            <span class="d-block fw-bold text-dark">Cost (USD)</span>
+                            <span class="text-success">$${costs.cost_usd}</span>
+                        </div>
+                    `;
+                }
+
+                loadingResult.classList.add('d-none');
+                finalResult.classList.remove('d-none');
+                copyBtn.classList.remove('d-none');
+            } else {
+                const error = await response.json();
+                alert('Generation Error: ' + (error.error || 'Failed to generate quiz'));
+                loadingResult.classList.add('d-none');
+                emptyResult.classList.remove('d-none');
+            }
+        } catch (err) {
+            console.error(err);
+            alert('Something went wrong. Is the backend running?');
+            loadingResult.classList.add('d-none');
+            emptyResult.classList.remove('d-none');
+        } finally {
+            generateBtn.disabled = false;
+            btnText.classList.remove('d-none');
+            btnSpinner.classList.add('d-none');
+        }
+    });
+
+    document.getElementById('copyBtn').addEventListener('click', () => {
+        const text = document.getElementById('jsonOutput').textContent;
+        navigator.clipboard.writeText(text);
+        alert('JSON copied to clipboard!');
+    });
+</script>
+{% endblock %}

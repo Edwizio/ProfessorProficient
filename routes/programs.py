@@ -15,7 +15,7 @@ def get_programs():
     if not programs:
         return  {"error": "Sorry no programs have been added to the database"}
     else:
-        return [{"id": prog.id, "Name": prog.name ,"Description": prog.description}
+        return [{"id": prog.id, "name": prog.name ,"description": prog.description}
             for prog in programs], 200
 
 

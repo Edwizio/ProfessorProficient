@@ -213,6 +213,7 @@ class QuestionOption(db.Model):
     order_index = db.Column(db.Integer, default=0) # number of the option
 
     question = db.relationship("Question", back_populates="options") # relationship defined for the Question Class
+    student_answers = db.relationship("StudentAnswer", back_populates="selected_option")
 
 
 # StudentAnswer Class defined for storing the answers submitted by the students
@@ -240,5 +241,5 @@ class StudentAnswer(db.Model):
     # Relationships defined
     question = db.relationship("Question", back_populates="student_answers")
     student = db.relationship("User", back_populates="answers") # answers is an attribute on the User model
-    selected_option = db.relationship("QuestionOption", back_populates="question_options")
+    selected_option = db.relationship("QuestionOption", back_populates="student_answers")
 

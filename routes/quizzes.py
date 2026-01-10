@@ -1,10 +1,56 @@
-from flask import request, Blueprint
+from flask import request, Blueprint, jsonify
 from sqlalchemy.exc import SQLAlchemyError
+import os
 
 from ProfessorProficient.data_models import db, Quiz, Course, User
+from GenAIRequests.RAG_Requests import generate_quiz_with_rag, setup_rag_components
+from GenAIRequests.quiz_ai_requests import QuizRequest, QuizResponse
 
 # Defining blueprint to be used in the app later
 quizzes_bp = Blueprint("quizzes",__name__)
+
+# Cache for RAG components to avoid reloading every time
+rag_retriever = None
+rag_model = None
+
+@quizzes_bp.route("/generate-rag", methods=["POST"])
+def generate_rag_quiz():
+    """This function uses RAG to generate a quiz based on document context"""
+    global rag_retriever, rag_model
+    
+    data = request.get_json()
+    if not data.get("topic"):
+        return {"error": "Topic is required"}, 400
+
+    # Initialize RAG components if not already done
+    if rag_retriever is None or rag_model is None:
+        try:
+            # Change directory to where the text file is expected if necessary, 
+            # or ensure the path in setup_rag_components is correct.
+            # RAG_Requests.py uses TextLoader("AND_Logic.txt")
+            rag_retriever, rag_model = setup_rag_components()
+        except Exception as e:
+            return {"error": f"Failed to initialize RAG: {str(e)}"}, 500
+
+    try:
+        req = QuizRequest(
+            topic=data["topic"],
+            num_questions=int(data.get("num_questions", 5)),
+            total_marks=int(data.get("total_marks", 10))
+        )
+        
+        model_with_structure = rag_model.with_structured_output(QuizResponse)
+        quiz_raw, costs = generate_quiz_with_rag(req, rag_retriever, rag_model)
+        
+        # Convert to structured output
+        response = model_with_structure.invoke(f"Convert the following quiz into the structured QuizResponse format:\n\n{quiz_raw}")
+        
+        result = response.model_dump()
+        result["costs"] = costs
+        
+        return jsonify(result), 200
+    except Exception as e:
+        return {"error": str(e)}, 500
 
 # Getting all quizzes using GET
 @quizzes_bp.route("/", methods=["GET"])

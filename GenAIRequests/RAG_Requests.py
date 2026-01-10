@@ -14,7 +14,10 @@ from langchain_community.document_loaders import TextLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import FAISS
 from langchain_openai import OpenAIEmbeddings, ChatOpenAI
-from quiz_ai_requests import QuizRequest, QuizResponse
+try:
+    from .quiz_ai_requests import QuizRequest, QuizResponse
+except ImportError:
+    from quiz_ai_requests import QuizRequest, QuizResponse
 from langchain_community.callbacks import get_openai_callback
 
 
@@ -25,9 +28,12 @@ API_KEY = os.getenv("OPENAI_API_KEY")
 
 def setup_rag_components():
     """This function sets up the basic RAG components to be used in the subsequent requests"""
+    # Get the directory of the current file
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    file_path = os.path.join(current_dir, "AND_Logic.txt")
 
     # 1. Load
-    loader = TextLoader("AND_Logic.txt")
+    loader = TextLoader(file_path)
     docs = loader.load()
     print(f"Loaded {len(docs)} documents!")
 
@@ -61,6 +67,11 @@ def generate_quiz_with_rag(req, retriever, model):
     prompt = f"""
     Use ONLY the following context to generate a quiz: {context}
     
+    Topic: {req.topic}
+    Number of Questions: {req.num_questions}
+    Total Marks: {req.total_marks}
+    
+    Generate exactly {req.num_questions} questions. The total marks for the quiz should be {req.total_marks}.
     """
 
     # Tracking the cost and generating the quiz using context with in the prompt
@@ -68,6 +79,7 @@ def generate_quiz_with_rag(req, retriever, model):
         response = model.invoke(prompt)
 
     cost_info = {
+        "model_name": model.model_name,
         "prompt_tokens": cb.prompt_tokens,
         "completion_tokens": cb.completion_tokens,
         "total_tokens": cb.total_tokens,

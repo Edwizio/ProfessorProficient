@@ -1,16 +1,52 @@
-from flask import Flask
+from flask import Flask, render_template, Blueprint
 import os
-from data_models import db
+from ProfessorProficient.data_models import db, Course, User, Program, Assignment, Quiz
 
 # Importing the Blueprints
-from routes.assignments import assignments_bp
-from routes.courses import courses_bp
-from routes.users import users_bp
-from routes.quizzes import quizzes_bp
-from routes.programs import programs_bp
-from routes.questions import questions_bp
-from routes.question_options import question_options_bp
-from routes.student_answers import student_answers_bp
+from ProfessorProficient.routes.assignments import assignments_bp
+from ProfessorProficient.routes.courses import courses_bp
+from ProfessorProficient.routes.users import users_bp
+from ProfessorProficient.routes.quizzes import quizzes_bp
+from ProfessorProficient.routes.programs import programs_bp
+from ProfessorProficient.routes.questions import questions_bp
+from ProfessorProficient.routes.question_options import question_options_bp
+from ProfessorProficient.routes.student_answers import student_answers_bp
+
+# UI Blueprint
+ui_bp = Blueprint("ui", __name__)
+
+@ui_bp.route("/")
+def index():
+    return render_template("index.html")
+
+@ui_bp.route("/ui/courses")
+def courses_page():
+    courses = Course.query.all()
+    return render_template("courses.html", courses=courses)
+
+@ui_bp.route("/ui/users")
+def users_page():
+    users = User.query.all()
+    return render_template("users.html", users=users)
+
+@ui_bp.route("/ui/programs")
+def programs_page():
+    programs = Program.query.all()
+    return render_template("programs.html", programs=programs)
+
+@ui_bp.route("/ui/assignments")
+def assignments_page():
+    assignments = Assignment.query.all()
+    return render_template("assignments.html", assignments=assignments)
+
+@ui_bp.route("/ui/quizzes")
+def quizzes_page():
+    quizzes = Quiz.query.all()
+    return render_template("quizzes.html", quizzes=quizzes)
+
+@ui_bp.route("/ui/generate-quiz")
+def generate_quiz_page():
+    return render_template("generate_quiz.html")
 
 #Creating the flask app object
 def create_app():
@@ -28,6 +64,7 @@ def create_app():
     db.init_app(app)  # Link the database and the app. This is the reason we need to import db from models
 
     # Registering the Blueprints
+    app.register_blueprint(ui_bp)
     app.register_blueprint(users_bp, url_prefix="/users")
     app.register_blueprint(programs_bp, url_prefix="/programs")
     app.register_blueprint(courses_bp, url_prefix="/courses")
