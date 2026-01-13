@@ -45,7 +45,7 @@ def setup_rag_components():
     vectorstore = FAISS.from_documents(documents=chunks, embedding=OpenAIEmbeddings(model= "text-embedding-3-small",api_key=API_KEY))
     print("Vector store created successfully")
 
-    model = ChatOpenAI(model="gpt-4o-mini", api_key=API_KEY)
+    model = ChatOpenAI(model="gpt-5-mini", api_key=API_KEY)
     print(f"model: {model.model_name}")
     # setup retriever
     retriever = vectorstore.as_retriever()

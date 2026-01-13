@@ -135,7 +135,7 @@ parser = PydanticOutputParser(pydantic_object=QuizResponse)
 
 # Defining the LLM with low temperature initially
 llm = ChatOpenAI(
-    model="gpt-4o-mini",
+    model="gpt-5-mini",
     temperature=0.3,
     api_key=API_KEY
 )

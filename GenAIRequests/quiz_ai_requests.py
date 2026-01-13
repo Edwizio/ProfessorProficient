@@ -81,8 +81,8 @@ def generate_quiz(request: QuizRequest) -> Tuple[QuizResponse, dict]:
     usage = response.usage
     latency = (end - start)
 
-    input_cost = (usage.input_tokens * MODEL_PRICING["gpt-4o-mini"]["input"] / 1000)
-    output_cost = (usage.output_tokens * MODEL_PRICING["gpt-4o-mini"]["output"] / 1000)
+    input_cost = (usage.input_tokens * MODEL_PRICING["gpt-5-mini"]["input"] / 1000)
+    output_cost = (usage.output_tokens * MODEL_PRICING["gpt-5-mini"]["output"] / 1000)
     total_cost = input_cost + output_cost
 
     # Latency and Cost Calculations output
