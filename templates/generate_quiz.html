@@ -10,7 +10,7 @@
 
 <div class="row">
     <div class="col-md-5">
-        <div class="card shadow-sm border-0 bg-white">
+        <div class="card shadow-sm border-0">
             <div class="card-body p-4">
                 <h5 class="fw-bold mb-3">Quiz Parameters</h5>
                 <form id="quizGeneratorForm">
@@ -26,6 +26,23 @@
                         <label class="form-label fw-semibold">Total Marks</label>
                         <input type="number" class="form-control" name="total_marks" value="10" required>
                     </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Data Source</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="source_type" id="sourceLLM" value="llm" checked>
+                            <label class="form-check-label" for="sourceLLM">
+                                General AI Knowledge (GPT-4o)
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="source_type" id="sourceRAG" value="rag">
+                            <label class="form-check-label" for="sourceRAG">
+                                Course Documents (RAG)
+                            </label>
+                        </div>
+                    </div>
+
                     <div class="d-grid mt-4">
                         <button type="submit" class="btn btn-primary py-2 fw-bold" id="generateBtn">
                             <span id="btnText">Generate Quiz</span>
@@ -36,12 +53,12 @@
             </div>
         </div>
         
-        <div class="card shadow-sm border-0 mt-4 bg-light">
+        <div class="card shadow-sm border-0 mt-4 bg-body-tertiary">
             <div class="card-body">
                 <h6 class="fw-bold text-primary"><i class="bi bi-info-circle"></i> How it works</h6>
                 <small class="text-muted d-block mt-2">
-                    Our AI scans the <code>GenAIRequests/</code> directory for relevant course materials. 
-                    It then uses semantic search to find the most relevant context and generates a structured JSON quiz.
+                    <strong>General AI:</strong> Uses the model's vast internal knowledge base.<br>
+                    <strong>RAG:</strong> Scans the <code>GenAIRequests/</code> directory for relevant course materials (PDFs/Text) and uses them as context.
                 </small>
             </div>
         </div>
@@ -49,7 +66,7 @@
 
     <div class="col-md-7">
         <div class="card shadow-sm border-0 h-100" id="resultCard" style="min-height: 400px;">
-            <div class="card-header bg-white border-bottom-0 pt-4 px-4 d-flex justify-content-between align-items-center">
+            <div class="card-header border-bottom-0 pt-4 px-4 d-flex justify-content-between align-items-center">
                 <h5 class="fw-bold mb-0">Generated Output</h5>
                 <button class="btn btn-sm btn-outline-secondary d-none" id="copyBtn">Copy JSON</button>
             </div>
@@ -71,7 +88,7 @@
                 <div class="p-4 bg-dark text-success rounded-0 mb-0" style="max-height: 500px; overflow-y: auto;">
                     <pre class="mb-0"><code id="jsonOutput" class="small"></code></pre>
                 </div>
-                <div class="card-footer bg-white border-top small text-muted">
+                <div class="card-footer border-top small text-muted">
                     <div class="row text-center" id="costInfo">
                         <!-- Cost info will be injected here -->
                     </div>
@@ -109,10 +126,13 @@
 
         const formData = new FormData(e.target);
         const data = Object.fromEntries(formData.entries());
+        
+        // Add explicit boolean for backend
+        data.use_rag = (data.source_type === 'rag');
 
         try {
             // Note: We need a backend route that calls generate_quiz_with_rag
-            const response = await fetch('/quizzes/generate-rag', {
+            const response = await fetch('/quizzes/generate-ai', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
@@ -132,19 +152,19 @@
                 if (costs) {
                     costInfo.innerHTML = `
                         <div class="col-md-3 border-end">
-                            <span class="d-block fw-bold text-dark">Model</span>
+                            <span class="d-block fw-bold">Model</span>
                             <span>${costs.model_name || 'N/A'}</span>
                         </div>
                         <div class="col-md-3 border-end">
-                            <span class="d-block fw-bold text-dark">Total Tokens</span>
+                            <span class="d-block fw-bold">Total Tokens</span>
                             <span>${costs.total_tokens}</span>
                         </div>
                         <div class="col-md-3 border-end">
-                            <span class="d-block fw-bold text-dark">Prompt / Compl.</span>
+                            <span class="d-block fw-bold">Prompt / Compl.</span>
                             <span>${costs.prompt_tokens} / ${costs.completion_tokens}</span>
                         </div>
                         <div class="col-md-3">
-                            <span class="d-block fw-bold text-dark">Cost (USD)</span>
+                            <span class="d-block fw-bold">Cost (USD)</span>
                             <span class="text-success">$${costs.cost_usd}</span>
                         </div>
                     `;

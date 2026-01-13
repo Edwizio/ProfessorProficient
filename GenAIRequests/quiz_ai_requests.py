@@ -2,7 +2,8 @@ import os
 from dotenv import load_dotenv
 from openai import OpenAI
 from pydantic import BaseModel, Field
-from typing import List
+from typing import List, Tuple
+import time # for latency calculations
 
 MODEL_PRICING = {
     "gpt-4o-mini": {
@@ -47,7 +48,7 @@ client = OpenAI(api_key=API_KEY)
 SYSTEM_ROLE = "You are a teacher of Bachelor Level Digital Logic Design"
 
 
-def generate_quiz(request: QuizRequest) -> QuizResponse:
+def generate_quiz(request: QuizRequest) -> Tuple[QuizResponse, dict]:
     """This function generates a structured quiz using Pydantic models and OpenAI requests"""
 
     user_prompt = f"""
@@ -57,6 +58,8 @@ def generate_quiz(request: QuizRequest) -> QuizResponse:
     Number of Questions: {request.num_questions}
 
     """
+
+    start = time.perf_counter() # determining the starting time of the request
 
     response = client.responses.parse(
         model="gpt-4o-mini",
@@ -68,15 +71,26 @@ def generate_quiz(request: QuizRequest) -> QuizResponse:
         text_format=QuizResponse
     )
 
-    # Calculating the costs
+    end = time.perf_counter()  # determining the ending time of the request
+
+    # Calculating the costs and latency
     usage = response.usage
+    latency = (end - start)
 
-    print(f"model: {response.model}")
-    print(f"Input tokens: {usage.input_tokens} and Input cost: {(usage.input_tokens*0.00015/1000):.6f}")
-    print(f"Output tokens: {usage.output_tokens} and Output cost: {usage.output_tokens*0.0006/1000}")
-    print(f"Total tokens: {usage.total_tokens} and total cost {(usage.input_tokens*0.00015/1000) + (usage.output_tokens*0.0006/1000)}")
+    input_cost = (usage.input_tokens * MODEL_PRICING["gpt-4o-mini"]["input"] / 1000)
+    output_cost = (usage.output_tokens * MODEL_PRICING["gpt-4o-mini"]["output"] / 1000)
+    total_cost = input_cost + output_cost
 
-    return response.output_parsed # Ensuring the Python object returned is created by our Pydantic schema
+    # Latency and Cost Calculations output
+    cost_info = {
+        f"model: {response.model}",
+        f"Input tokens: {usage.input_tokens} and Input cost: {input_cost:.6f}",
+        f"Output tokens: {usage.output_tokens} and Output cost: {output_cost:.6f}",
+        f"Total tokens: {usage.total_tokens} and total cost {total_cost:.6f}",
+        f"Latency(time taken in seconds): {round(latency, 2)}"
+    }
+
+    return response.output_parsed, cost_info # Ensuring the Python object returned is created by our Pydantic schema
 
 
 # Calling here right now to avoid being called in the inherited files
@@ -88,7 +102,8 @@ if __name__ == "__main__":
         num_questions=5
     )
 
-    quiz = generate_quiz(req)
+    quiz, costs = generate_quiz(req)
 
     print(quiz)
+    print(costs)
 

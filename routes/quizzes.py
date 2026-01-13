@@ -2,9 +2,9 @@ from flask import request, Blueprint, jsonify
 from sqlalchemy.exc import SQLAlchemyError
 import os
 
-from ProfessorProficient.data_models import db, Quiz, Course, User
-from GenAIRequests.RAG_Requests import generate_quiz_with_rag, setup_rag_components
-from GenAIRequests.quiz_ai_requests import QuizRequest, QuizResponse
+from ProfessorProficient.data_models import db, Quiz, Course, User, Question, QuestionOption
+from ProfessorProficient.GenAIRequests.RAG_Requests import generate_quiz_with_rag, setup_rag_components
+from ProfessorProficient.GenAIRequests.quiz_ai_requests import QuizRequest, QuizResponse, generate_quiz
 
 # Defining blueprint to be used in the app later
 quizzes_bp = Blueprint("quizzes",__name__)
@@ -13,25 +13,17 @@ quizzes_bp = Blueprint("quizzes",__name__)
 rag_retriever = None
 rag_model = None
 
-@quizzes_bp.route("/generate-rag", methods=["POST"])
-def generate_rag_quiz():
-    """This function uses RAG to generate a quiz based on document context"""
+@quizzes_bp.route("/generate-ai", methods=["POST"])
+def generate_ai_quiz():
+    """This function uses AI (RAG or standard LLM) to generate a quiz"""
     global rag_retriever, rag_model
     
     data = request.get_json()
     if not data.get("topic"):
         return {"error": "Topic is required"}, 400
 
-    # Initialize RAG components if not already done
-    if rag_retriever is None or rag_model is None:
-        try:
-            # Change directory to where the text file is expected if necessary, 
-            # or ensure the path in setup_rag_components is correct.
-            # RAG_Requests.py uses TextLoader("AND_Logic.txt")
-            rag_retriever, rag_model = setup_rag_components()
-        except Exception as e:
-            return {"error": f"Failed to initialize RAG: {str(e)}"}, 500
-
+    use_rag = data.get("use_rag", False)
+    
     try:
         req = QuizRequest(
             topic=data["topic"],
@@ -39,14 +31,81 @@ def generate_rag_quiz():
             total_marks=int(data.get("total_marks", 10))
         )
         
-        model_with_structure = rag_model.with_structured_output(QuizResponse)
-        quiz_raw, costs = generate_quiz_with_rag(req, rag_retriever, rag_model)
+        result = {}
         
-        # Convert to structured output
-        response = model_with_structure.invoke(f"Convert the following quiz into the structured QuizResponse format:\n\n{quiz_raw}")
-        
-        result = response.model_dump()
-        result["costs"] = costs
+        if use_rag:
+            # Initialize RAG components if not already done
+            if rag_retriever is None or rag_model is None:
+                try:
+                    rag_retriever, rag_model = setup_rag_components()
+                except Exception as e:
+                    return {"error": f"Failed to initialize RAG: {str(e)}"}, 500
+
+            model_with_structure = rag_model.with_structured_output(QuizResponse)
+            quiz_raw, costs = generate_quiz_with_rag(req, rag_retriever, rag_model)
+            
+            # Convert to structured output
+            response = model_with_structure.invoke(f"Convert the following quiz into the structured QuizResponse format:\n\n{quiz_raw}")
+            result = response.model_dump()
+            result["costs"] = costs
+            
+        else:
+            # Standard LLM Generation
+            quiz_obj, costs = generate_quiz(req)
+            result = quiz_obj.model_dump()
+            result["costs"] = costs
+
+        # --- SAVE TO DB START ---
+        try:
+            # Defaulting to first course and admin user if not provided
+            course_id = data.get('course_id', 1) 
+            created_by = data.get('created_by', 1)
+            
+            # Create Quiz
+            new_quiz = Quiz(
+                title=result.get('title', data['topic']),
+                total_marks=result.get('total_marks', int(data.get('total_marks', 10))),
+                course_id=course_id,
+                created_by=created_by
+            )
+            db.session.add(new_quiz)
+            db.session.flush() # To get new_quiz.id
+            
+            # Create Questions
+            for q_data in result.get('questions', []):
+                new_question = Question(
+                    quiz_id=new_quiz.id,
+                    question_text=q_data.get('question'), # Matches Pydantic 'question' field
+                    question_type='multiple_choice', # Default for this generator
+                    marks=1, # Default 1 mark per question
+                    created_by=created_by
+                )
+                db.session.add(new_question)
+                db.session.flush()
+                
+                # Create Options
+                correct_ans = q_data.get('correct_answer', '').strip().lower()
+                
+                for opt_text in q_data.get('options', []):
+                    # Simple string comparison for correctness
+                    is_correct = (opt_text.strip().lower() == correct_ans)
+                    
+                    new_option = QuestionOption(
+                        question_id=new_question.id,
+                        option_text=opt_text,
+                        is_correct=is_correct
+                    )
+                    db.session.add(new_option)
+            
+            db.session.commit()
+            print(f"Quiz '{new_quiz.title}' saved to DB with ID: {new_quiz.id}")
+            result["saved_id"] = new_quiz.id
+            
+        except Exception as db_err:
+            print(f"Failed to save generated quiz to DB: {db_err}")
+            db.session.rollback()
+            result["db_error"] = str(db_err)
+        # --- SAVE TO DB END ---
         
         return jsonify(result), 200
     except Exception as e:

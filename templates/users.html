@@ -8,7 +8,7 @@
     </div>
     <div class="d-flex gap-2">
         <div class="input-group">
-            <span class="input-group-text bg-white border-end-0"><i class="bi bi-search"></i></span>
+            <span class="input-group-text border-end-0"><i class="bi bi-search"></i></span>
             <input type="text" class="form-control border-start-0 ps-0" id="searchInput" placeholder="Search users...">
         </div>
         <button class="btn btn-primary text-nowrap" data-bs-toggle="modal" data-bs-target="#addUserModal">
@@ -18,7 +18,7 @@
 </div>
 
 <div class="card shadow-sm">
-    <div class="card-header bg-white py-3">
+    <div class="card-header py-3">
         <ul class="nav nav-pills card-header-pills" id="userTabs" role="tablist">
             <li class="nav-item" role="presentation">
                 <button class="nav-link active" id="all-tab" data-bs-toggle="tab" data-bs-target="#all" type="button" role="tab">All Users</button>
@@ -37,13 +37,14 @@
             <div class="tab-pane fade show active" id="all" role="tabpanel">
                 <div class="table-responsive">
                     <table class="table table-hover mb-0 align-middle" id="usersTable">
-                        <thead class="bg-light text-muted">
+                        <thead class="text-secondary">
                             <tr>
                                 <th class="ps-4">ID</th>
                                 <th>Name</th>
                                 <th>Email</th>
                                 <th>Role</th>
                                 <th>Joined</th>
+                                <th>Courses</th>
                                 <th class="text-end pe-4">Actions</th>
                             </tr>
                         </thead>
@@ -65,6 +66,23 @@
                                 <td class="text-muted small">
                                     {{ user.created_at.strftime('%Y-%m-%d') if user.created_at else 'N/A' }}
                                 </td>
+                                <td>
+                                    {% if user.role.value == 'student' %}
+                                        {% for course in user.enrolled_courses %}
+                                            <span class="badge border text-body-secondary">{{ course.code }}</span>
+                                        {% else %}
+                                            <span class="text-muted small">-</span>
+                                        {% endfor %}
+                                    {% elif user.role.value == 'teacher' %}
+                                        {% for course in user.teaching_courses %}
+                                            <span class="badge border text-body-secondary">{{ course.code }}</span>
+                                        {% else %}
+                                            <span class="text-muted small">-</span>
+                                        {% endfor %}
+                                    {% else %}
+                                        <span class="text-muted small">-</span>
+                                    {% endif %}
+                                </td>
                                 <td class="text-end pe-4">
                                     <button class="btn btn-sm btn-outline-secondary edit-btn" 
                                             data-id="{{ user.id }}" 
@@ -78,7 +96,7 @@
                             </tr>
                             {% else %}
                             <tr>
-                                <td colspan="6" class="text-center py-5">
+                                <td colspan="7" class="text-center py-5">
                                     <p class="text-muted mb-0">No users found.</p>
                                 </td>
                             </tr>
@@ -94,11 +112,12 @@
             <div class="tab-pane fade" id="students" role="tabpanel">
                  <div class="table-responsive">
                     <table class="table table-hover mb-0 align-middle">
-                        <thead class="bg-light text-muted">
+                        <thead class="text-secondary">
                             <tr>
                                 <th class="ps-4">ID</th>
                                 <th>Name</th>
                                 <th>Email</th>
+                                <th>Enrolled Courses</th>
                                 <th class="text-end pe-4">Joined</th>
                             </tr>
                         </thead>
@@ -108,6 +127,13 @@
                                 <td class="ps-4 text-muted">#{{ user.id }}</td>
                                 <td class="fw-semibold">{{ user.name }}</td>
                                 <td>{{ user.email }}</td>
+                                <td>
+                                    {% for course in user.enrolled_courses %}
+                                        <span class="badge border text-body-secondary">{{ course.code }}</span>
+                                    {% else %}
+                                        <span class="text-muted small">-</span>
+                                    {% endfor %}
+                                </td>
                                 <td class="text-end pe-4 text-muted small">
                                     {{ user.created_at.strftime('%Y-%m-%d') if user.created_at else 'N/A' }}
                                 </td>
@@ -121,11 +147,12 @@
             <div class="tab-pane fade" id="teachers" role="tabpanel">
                  <div class="table-responsive">
                     <table class="table table-hover mb-0 align-middle">
-                        <thead class="bg-light text-muted">
+                        <thead class="text-secondary">
                             <tr>
                                 <th class="ps-4">ID</th>
                                 <th>Name</th>
                                 <th>Email</th>
+                                <th>Teaching Courses</th>
                                 <th class="text-end pe-4">Joined</th>
                             </tr>
                         </thead>
@@ -135,6 +162,13 @@
                                 <td class="ps-4 text-muted">#{{ user.id }}</td>
                                 <td class="fw-semibold">{{ user.name }}</td>
                                 <td>{{ user.email }}</td>
+                                <td>
+                                    {% for course in user.teaching_courses %}
+                                        <span class="badge border text-body-secondary">{{ course.code }}</span>
+                                    {% else %}
+                                        <span class="text-muted small">-</span>
+                                    {% endfor %}
+                                </td>
                                 <td class="text-end pe-4 text-muted small">
                                     {{ user.created_at.strftime('%Y-%m-%d') if user.created_at else 'N/A' }}
                                 </td>

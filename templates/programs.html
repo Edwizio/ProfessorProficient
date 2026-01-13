@@ -8,7 +8,7 @@
     </div>
     <div class="d-flex gap-2">
         <div class="input-group">
-            <span class="input-group-text bg-white border-end-0"><i class="bi bi-search"></i></span>
+            <span class="input-group-text border-end-0"><i class="bi bi-search"></i></span>
             <input type="text" class="form-control border-start-0 ps-0" id="searchInput" placeholder="Search programs...">
         </div>
         <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addProgramModal">
@@ -21,11 +21,12 @@
     <div class="card-body p-0">
         <div class="table-responsive">
             <table class="table table-hover mb-0 align-middle" id="programsTable">
-                <thead class="bg-light text-muted">
+                <thead class="text-secondary">
                     <tr>
                         <th class="ps-4">ID</th>
                         <th>Name</th>
                         <th>Description</th>
+                        <th>Courses</th>
                         <th class="text-end pe-4">Actions</th>
                     </tr>
                 </thead>
@@ -35,6 +36,13 @@
                         <td class="ps-4 text-muted">#{{ program.id }}</td>
                         <td class="fw-semibold">{{ program.name }}</td>
                         <td>{{ program.description or 'N/A' }}</td>
+                        <td>
+                            {% for course in program.courses %}
+                                <span class="badge bg-light text-dark border">{{ course.name }}</span>
+                            {% else %}
+                                <span class="text-muted small">No courses</span>
+                            {% endfor %}
+                        </td>
                         <td class="text-end pe-4">
                             <button class="btn btn-sm btn-outline-secondary edit-btn" 
                                     data-id="{{ program.id }}" 

@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 from openai import OpenAI
 from pydantic import BaseModel, Field
 from typing import List
+import time
 
 # Pydantic model for a descriptive question
 class DescriptiveQuestion(BaseModel):
@@ -42,6 +43,7 @@ def generate_descriptive_quiz(request: DescriptiveQuizRequest) -> DescriptiveQui
     Total marks: {request.total_marks}.
     Number of questions: {request.num_questions}.
     """
+    start = time.perf_counter() # determining the starting time of the request
 
     response = client.responses.parse(
         model="gpt-4o-mini",
@@ -52,14 +54,18 @@ def generate_descriptive_quiz(request: DescriptiveQuizRequest) -> DescriptiveQui
         text_format=DescriptiveQuizResponse,
     )
 
+    end = time.perf_counter()  # determining the ending time of the request
+    latency = (end - start) # calculating the time taken for the request
+
     print(f"model: {response.model}")
-    # Calculating the costs
+    # Calculating the costs and priting the stats
     usage = response.usage
 
     print(f"Input tokens: {usage.input_tokens} and Input cost: {(usage.input_tokens * 0.00015 / 1000):.6f}")
     print(f"Output tokens: {usage.output_tokens} and Output cost: {(usage.output_tokens * 0.0006 / 1000):.6f}")
     print(
         f"Total tokens: {usage.total_tokens} and total cost {((usage.input_tokens * 0.00015 / 1000) + (usage.output_tokens * 0.0006 / 1000)):.6f}")
+    print(f"Latency(time taken in seconds): {round(latency, 2)}")
 
     return response.output_parsed
 

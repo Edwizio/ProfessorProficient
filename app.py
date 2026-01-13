@@ -1,6 +1,6 @@
 from flask import Flask, render_template, Blueprint
 import os
-from ProfessorProficient.data_models import db, Course, User, Program, Assignment, Quiz
+from ProfessorProficient.data_models import db, Course, User, Program, Assignment, Quiz, UserRole
 
 # Importing the Blueprints
 from ProfessorProficient.routes.assignments import assignments_bp
@@ -17,7 +17,13 @@ ui_bp = Blueprint("ui", __name__)
 
 @ui_bp.route("/")
 def index():
-    return render_template("index.html")
+    active_courses = Course.query.count()
+    total_students = User.query.filter_by(role=UserRole.student).count()
+    quizzes_generated = Quiz.query.count()
+    return render_template("index.html", 
+                         active_courses=active_courses, 
+                         total_students=total_students, 
+                         quizzes_generated=quizzes_generated)
 
 @ui_bp.route("/ui/courses")
 def courses_page():
