@@ -58,7 +58,7 @@ def generate_descriptive_quiz(request: DescriptiveQuizRequest) -> DescriptiveQui
     latency = (end - start) # calculating the time taken for the request
 
     print(f"model: {response.model}")
-    # Calculating the costs and priting the stats
+    # Calculating the costs and printing the stats
     usage = response.usage
 
     print(f"Input tokens: {usage.input_tokens} and Input cost: {(usage.input_tokens * 0.00015 / 1000):.6f}")

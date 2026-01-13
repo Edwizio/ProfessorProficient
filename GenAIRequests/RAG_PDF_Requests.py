@@ -13,6 +13,8 @@ from langchain_community.vectorstores import FAISS # for embedding and vector st
 
 from langchain_core.documents import Document # for the chunking model
 
+import time # for latency calculations
+
 
 # 1. Load PDF with PyPDF
 
@@ -176,15 +178,21 @@ def generate_quiz_rag_plus_llm(request, retriever):
         format_instructions=parser.get_format_instructions(),
     )
 
+    start = time.perf_counter()
+
     # Tracking the cost and generating the quiz using context with in the prompt
     with get_openai_callback() as cb:
         response = llm.invoke(messages)
+
+    end = time.perf_counter()
+    latency = end -  start
 
     cost_info = {
         "prompt_tokens": cb.prompt_tokens,
         "completion_tokens": cb.completion_tokens,
         "total_tokens": cb.total_tokens,
-        "cost_usd": f"{(cb.total_cost):.6f}"
+        "cost_usd": f"{cb.total_cost:.6f}",
+        "Latency (time taken)": f"{latency:.2f}"
     }
 
     # returning the parsed response
@@ -216,16 +224,21 @@ def generate_quiz_rag_only(request, retriever):
 
     {parser.get_format_instructions()}
     """
+    start = time.perf_counter()
 
     # Tracking the cost and generating the quiz using context with in the prompt
     with get_openai_callback() as cb:
         response = llm.invoke(prompt_text)
 
+    end = time.perf_counter()
+    latency = end - start
+
     cost_info = {
         "prompt_tokens": cb.prompt_tokens,
         "completion_tokens": cb.completion_tokens,
         "total_tokens": cb.total_tokens,
-        "cost_usd": f"{(cb.total_cost):.6f}"
+        "cost_usd": f"{cb.total_cost :.6f}",
+        "Latency (time taken)": f"{latency:.2f}"
     }
 
     return parser.parse(response.content), cost_info # parsing the response to get the correct structure

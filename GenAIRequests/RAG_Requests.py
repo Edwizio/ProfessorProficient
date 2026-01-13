@@ -14,11 +14,9 @@ from langchain_community.document_loaders import TextLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import FAISS
 from langchain_openai import OpenAIEmbeddings, ChatOpenAI
-try:
-    from .quiz_ai_requests import QuizRequest, QuizResponse
-except ImportError:
-    from quiz_ai_requests import QuizRequest, QuizResponse
+from ProfessorProficient.GenAIRequests.quiz_ai_requests import QuizRequest, QuizResponse
 from langchain_community.callbacks import get_openai_callback
+import time
 
 
 load_dotenv()
@@ -74,16 +72,23 @@ def generate_quiz_with_rag(req, retriever, model):
     Generate exactly {req.num_questions} questions. The total marks for the quiz should be {req.total_marks}.
     """
 
+    start = time.perf_counter()
+
     # Tracking the cost and generating the quiz using context with in the prompt
     with get_openai_callback() as cb:
         response = model.invoke(prompt)
+
+    end = time.perf_counter()
+
+    latency = end - start
 
     cost_info = {
         "model_name": model.model_name,
         "prompt_tokens": cb.prompt_tokens,
         "completion_tokens": cb.completion_tokens,
         "total_tokens": cb.total_tokens,
-        "cost_usd": f"{(cb.total_cost):.6f}"
+        "cost_usd": f"{cb.total_cost :.6f}",
+        "Latency (time taken)": f"{latency :.2f}"
     }
 
     return response, cost_info
