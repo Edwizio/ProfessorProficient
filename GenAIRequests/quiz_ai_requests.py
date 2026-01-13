@@ -10,9 +10,13 @@ MODEL_PRICING = {
         "input": 0.00015,     # USD per 1K tokens
         "output": 0.0006
     },
-    "gpt-5": {
-        "input": 0.01,
-        "output": 0.03
+    "gpt-5-mini": {
+        "input": 0.00025,
+        "output": 0.002
+    },
+    "gpt-4.1-mini": {
+        "input": 0.0004,
+        "output": 0.0016
     }
 }
 
@@ -62,7 +66,7 @@ def generate_quiz(request: QuizRequest) -> Tuple[QuizResponse, dict]:
     start = time.perf_counter() # determining the starting time of the request
 
     response = client.responses.parse(
-        model="gpt-4o-mini",
+        model="gpt-5-mini",
         input=[
             {"role": "system", "content": SYSTEM_ROLE},
             {"role": "user", "content": user_prompt}
