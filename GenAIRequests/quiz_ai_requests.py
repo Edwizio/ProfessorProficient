@@ -66,7 +66,7 @@ def generate_quiz(request: QuizRequest) -> Tuple[QuizResponse, dict]:
     start = time.perf_counter() # determining the starting time of the request
 
     response = client.responses.parse(
-        model="gpt-5-mini",
+        model="gpt-4.1-mini",
         input=[
             {"role": "system", "content": SYSTEM_ROLE},
             {"role": "user", "content": user_prompt}
@@ -81,8 +81,8 @@ def generate_quiz(request: QuizRequest) -> Tuple[QuizResponse, dict]:
     usage = response.usage
     latency = (end - start)
 
-    input_cost = (usage.input_tokens * MODEL_PRICING["gpt-5-mini"]["input"] / 1000)
-    output_cost = (usage.output_tokens * MODEL_PRICING["gpt-5-mini"]["output"] / 1000)
+    input_cost = (usage.input_tokens * MODEL_PRICING["gpt-4.1-mini"]["input"] / 1000)
+    output_cost = (usage.output_tokens * MODEL_PRICING["gpt-4.1-mini"]["output"] / 1000)
     total_cost = input_cost + output_cost
 
     # Latency and Cost Calculations output
