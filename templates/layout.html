@@ -11,35 +11,60 @@
     <style>
         body {
             font-family: 'Inter', sans-serif;
+            background-color: #0b060b;
         }
         .navbar {
-            background-color: #1a252f;
+            background-color: #1a0f1a;
+            border-bottom: 1px solid #3d233d;
         }
         .navbar-brand {
             font-weight: 600;
-            color: #ecf0f1 !important;
+            color: #dda0dd !important;
         }
         .nav-link {
             color: #bdc3c7 !important;
         }
         .nav-link:hover {
-            color: #ffffff !important;
+            color: #dda0dd !important;
         }
         .card {
-            border: none;
-            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            background-color: #1a0f1a;
+            border: 1px solid #3d233d;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.5);
             transition: transform 0.2s;
         }
         .card:hover {
             transform: translateY(-5px);
         }
         .btn-primary {
-            background-color: #3498db;
-            border-color: #3498db;
+            background-color: #8e4585;
+            border-color: #8e4585;
+        }
+        .btn-primary:hover {
+            background-color: #a6519a;
+            border-color: #a6519a;
+        }
+        .btn-outline-primary {
+            color: #dda0dd;
+            border-color: #dda0dd;
+        }
+        .btn-outline-primary:hover {
+            background-color: #8e4585;
+            border-color: #8e4585;
+            color: white;
+        }
+        .text-primary {
+            color: #dda0dd !important;
+        }
+        .badge.bg-primary {
+            background-color: #8e4585 !important;
+        }
+        .bg-primary {
+            background-color: #8e4585 !important;
         }
         .sidebar {
             height: 100vh;
-            background: #1a252f;
+            background: #1a0f1a;
             color: white;
             padding-top: 20px;
         }
@@ -50,8 +75,81 @@
             display: block;
         }
         .sidebar a:hover {
-            background: #34495e;
+            background: #3d233d;
             color: white;
+        }
+        .spinner-primary, .spinner-border.text-primary {
+            color: #dda0dd !important;
+        }
+        .border-primary {
+            border-color: #8e4585 !important;
+        }
+        .bg-body-tertiary {
+            background-color: #120a12 !important;
+        }
+        .list-group-item {
+            background-color: transparent;
+            border-color: #3d233d;
+            color: #bdc3c7;
+        }
+        .list-group-item:hover {
+            background-color: #251425;
+        }
+        input, select, textarea {
+            background-color: #0b060b !important;
+            border-color: #3d233d !important;
+            color: #ecf0f1 !important;
+        }
+        input:focus, select:focus, textarea:focus {
+            background-color: #0b060b !important;
+            border-color: #8e4585 !important;
+            box-shadow: 0 0 0 0.25rem rgba(142, 69, 133, 0.25) !important;
+            color: #ecf0f1 !important;
+        }
+        .input-group-text {
+            background-color: #1a0f1a !important;
+            border-color: #3d233d !important;
+            color: #bdc3c7 !important;
+        }
+        .modal-content {
+            background-color: #1a0f1a;
+            border: 1px solid #3d233d;
+        }
+        .modal-header, .modal-footer {
+            border-color: #3d233d;
+        }
+        hr {
+            border-color: #3d233d;
+        }
+        .bg-dark {
+            background-color: #000000 !important;
+        }
+        .text-success {
+            color: #dda0dd !important; 
+        }
+        .badge.bg-info {
+            background-color: #4b2c4b !important;
+            color: #dda0dd !important;
+        }
+        .badge.bg-success {
+            background-color: #251425 !important;
+            color: #dda0dd !important;
+        }
+        .badge.bg-warning {
+            background-color: #3d233d !important;
+            color: #dda0dd !important;
+        }
+        .nav-pills .nav-link.active {
+            background-color: #8e4585;
+        }
+        .nav-pills .nav-link {
+            color: #bdc3c7;
+        }
+        .nav-pills .nav-link:hover {
+            color: #dda0dd;
+        }
+        pre {
+            color: #dda0dd !important;
         }
     </style>
 </head>

@@ -16,7 +16,7 @@
                 <form id="quizGeneratorForm">
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Topic</label>
-                        <input type="text" class="form-control" name="topic" placeholder="e.g. Logic Gates, DNA Replication" required>
+                        <input type="text" class="form-control" name="topic" placeholder="e.g. Logic Gates, Digital Systems" required>
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Number of Questions</label>
@@ -32,7 +32,7 @@
                         <div class="form-check">
                             <input class="form-check-input" type="radio" name="source_type" id="sourceLLM" value="llm" checked>
                             <label class="form-check-label" for="sourceLLM">
-                                General AI Knowledge (GPT-4o)
+                                General AI Knowledge
                             </label>
                         </div>
                         <div class="form-check">
@@ -40,6 +40,27 @@
                             <label class="form-check-label" for="sourceRAG">
                                 Course Documents (RAG)
                             </label>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">AI Model</label>
+                        <select class="form-select" name="model_name">
+                            <option value="gpt-4.1-mini" selected>GPT-4.1 Mini (Fast & Cheap)</option>
+                            <option value="gpt-4o-mini">GPT-4o Mini</option>
+                            <option value="gpt-5-mini">GPT-5 Mini</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="tempRange" class="form-label fw-semibold d-flex justify-content-between">
+                            <span>Creativity (Temperature)</span>
+                            <span id="tempValue" class="text-primary">0.3</span>
+                        </label>
+                        <input type="range" class="form-range" id="tempRange" name="temperature" min="0" max="1" step="0.1" value="0.3">
+                        <div class="d-flex justify-content-between text-muted small">
+                            <span>Precise (0.0)</span>
+                            <span>Creative (1.0)</span>
                         </div>
                     </div>
 
@@ -102,6 +123,16 @@
 {% block scripts %}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
 <script>
+    // --- Update Temperature Display ---
+    const tempRange = document.getElementById('tempRange');
+    const tempValue = document.getElementById('tempValue');
+    
+    if (tempRange && tempValue) {
+        tempRange.addEventListener('input', (e) => {
+            tempValue.textContent = e.target.value;
+        });
+    }
+
     document.getElementById('quizGeneratorForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         
@@ -152,8 +183,8 @@
                 if (costs) {
                     costInfo.innerHTML = `
                         <div class="col-md-3 border-end">
-                            <span class="d-block fw-bold">Model</span>
-                            <span>${costs.model_name || 'N/A'}</span>
+                            <span class="d-block fw-bold">Time Taken</span>
+                            <span>${costs['Latency (time taken)'] || 'N/A'}s</span>
                         </div>
                         <div class="col-md-3 border-end">
                             <span class="d-block fw-bold">Total Tokens</span>

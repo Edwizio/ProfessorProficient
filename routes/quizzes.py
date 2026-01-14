@@ -12,17 +12,21 @@ quizzes_bp = Blueprint("quizzes",__name__)
 # Cache for RAG components to avoid reloading every time
 rag_retriever = None
 rag_model = None
+current_rag_model_name = None
+current_rag_temperature = None
 
 @quizzes_bp.route("/generate-ai", methods=["POST"])
 def generate_ai_quiz():
     """This function uses AI (RAG or standard LLM) to generate a quiz"""
-    global rag_retriever, rag_model
+    global rag_retriever, rag_model, current_rag_model_name, current_rag_temperature
     
     data = request.get_json()
     if not data.get("topic"):
         return {"error": "Topic is required"}, 400
 
     use_rag = data.get("use_rag", False)
+    model_name = data.get("model_name", "gpt-4.1-mini")
+    temperature = float(data.get("temperature", 0.3))
     
     try:
         req = QuizRequest(
@@ -34,10 +38,13 @@ def generate_ai_quiz():
         result = {}
         
         if use_rag:
-            # Initialize RAG components if not already done
-            if rag_retriever is None or rag_model is None:
+            # Initialize RAG components if not already done or if model/temperature changed
+            if (rag_retriever is None or rag_model is None or 
+                current_rag_model_name != model_name or current_rag_temperature != temperature):
                 try:
-                    rag_retriever, rag_model = setup_rag_components()
+                    rag_retriever, rag_model = setup_rag_components(model_name, temperature)
+                    current_rag_model_name = model_name
+                    current_rag_temperature = temperature
                 except Exception as e:
                     return {"error": f"Failed to initialize RAG: {str(e)}"}, 500
 
@@ -51,7 +58,7 @@ def generate_ai_quiz():
             
         else:
             # Standard LLM Generation
-            quiz_obj, costs = generate_quiz(req)
+            quiz_obj, costs = generate_quiz(req, model_name, temperature)
             result = quiz_obj.model_dump()
             result["costs"] = costs
 

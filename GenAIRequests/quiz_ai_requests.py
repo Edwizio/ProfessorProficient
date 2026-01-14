@@ -52,7 +52,7 @@ client = OpenAI(api_key=API_KEY)
 SYSTEM_ROLE = "You are a teacher of Bachelor Level Digital Logic Design"
 
 
-def generate_quiz(request: QuizRequest) -> Tuple[QuizResponse, dict]:
+def generate_quiz(request: QuizRequest, model_name: str = "gpt-4.1-mini", temperature: float = 0.3) -> Tuple[QuizResponse, dict]:
     """This function generates a structured quiz using Pydantic models and OpenAI requests"""
 
     user_prompt = f"""
@@ -66,12 +66,12 @@ def generate_quiz(request: QuizRequest) -> Tuple[QuizResponse, dict]:
     start = time.perf_counter() # determining the starting time of the request
 
     response = client.responses.parse(
-        model="gpt-4.1-mini",
+        model=model_name,
         input=[
             {"role": "system", "content": SYSTEM_ROLE},
             {"role": "user", "content": user_prompt}
         ],
-
+        temperature=temperature,
         text_format=QuizResponse
     )
 
@@ -81,17 +81,22 @@ def generate_quiz(request: QuizRequest) -> Tuple[QuizResponse, dict]:
     usage = response.usage
     latency = (end - start)
 
-    input_cost = (usage.input_tokens * MODEL_PRICING["gpt-4.1-mini"]["input"] / 1000)
-    output_cost = (usage.output_tokens * MODEL_PRICING["gpt-4.1-mini"]["output"] / 1000)
+    # Use the provided model_name for pricing lookup, defaulting to gpt-4.1-mini if not found directly
+    # Ideally, we should handle this more robustly, but for now we'll try to find the key or fallback
+    pricing_key = model_name if model_name in MODEL_PRICING else "gpt-4.1-mini"
+    
+    input_cost = (usage.input_tokens * MODEL_PRICING[pricing_key]["input"] / 1000)
+    output_cost = (usage.output_tokens * MODEL_PRICING[pricing_key]["output"] / 1000)
     total_cost = input_cost + output_cost
 
     # Latency and Cost Calculations output
     cost_info = {
-        f"model: {response.model}",
-        f"Input tokens: {usage.input_tokens} and Input cost: {input_cost:.6f}",
-        f"Output tokens: {usage.output_tokens} and Output cost: {output_cost:.6f}",
-        f"Total tokens: {usage.total_tokens} and total cost {total_cost:.6f}",
-        f"Latency(time taken in seconds): {round(latency, 2)}"
+        "model_name": response.model,
+        "prompt_tokens": usage.input_tokens,
+        "completion_tokens": usage.output_tokens,
+        "total_tokens": usage.total_tokens,
+        "cost_usd": f"{total_cost:.6f}",
+        "Latency (time taken)": f"{latency:.2f}"
     }
 
     return response.output_parsed, cost_info # Ensuring the Python object returned is created by our Pydantic schema

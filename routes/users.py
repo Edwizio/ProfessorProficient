@@ -1,11 +1,49 @@
-from flask import request, Blueprint
+from flask import request, Blueprint, session, jsonify
 from sqlalchemy.exc import SQLAlchemyError
 from ProfessorProficient.data_models import db, User, UserRole
 from sqlalchemy import func
-from werkzeug.security import generate_password_hash
+from werkzeug.security import generate_password_hash, check_password_hash
+from functools import wraps
 
 # Defining blueprint to be used in the app later
 users_bp = Blueprint("users",__name__)
+
+def admin_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        user_id = session.get("user_id")
+        if not user_id:
+            return jsonify({"error": "Authentication required"}), 401
+        
+        user = db.session.get(User, user_id)
+        if not user or user.role != UserRole.admin:
+            return jsonify({"error": "Admin privileges required"}), 403
+        
+        return f(*args, **kwargs)
+    return decorated_function
+
+@users_bp.route("/login", methods=["POST"])
+def login():
+    data = request.get_json()
+    email = data.get("email")
+    password = data.get("password")
+
+    if not email or not password:
+        return jsonify({"error": "Missing email or password"}), 400
+
+    user = User.query.filter_by(email=email).first()
+
+    if user and check_password_hash(user.password, password):
+        session["user_id"] = user.id
+        session["user_role"] = user.role.value
+        return jsonify({"message": f"Logged in as {user.name}", "role": user.role.value}), 200
+    
+    return jsonify({"error": "Invalid credentials"}), 401
+
+@users_bp.route("/logout", methods=["POST"])
+def logout():
+    session.clear()
+    return jsonify({"message": "Logged out successfully"}), 200
 
 # Creating a route for getting a list for the users from the database
 @users_bp.route("/", methods=["GET"])
@@ -36,6 +74,7 @@ def get_users():
 
 # Adding a new User to the database
 @users_bp.route("/", methods=["POST"])
+@admin_required
 def create_user():
     """This function creates a new user (admin, teacher, or student)."""
     data = request.get_json()
@@ -72,6 +111,7 @@ def create_user():
 
 # Updating a user's different attributes using PUT method instead of POST to avoid creating a new route unnecessarily
 @users_bp.route("/<int:user_id>", methods=["PUT"])
+@admin_required
 def update_user(user_id):
     """This function updates to provided user details."""
     user = User.query.get_or_404(user_id) # Using got_or_404() for automatic error handling
@@ -80,9 +120,10 @@ def update_user(user_id):
     # Assigning the new values from the JSON to the user object other if the param exists, otherwise keeping the original value
     user.name = data.get("name", user.name)
     user.email = data.get("email", user.email)
-    # Hashing the password
-    password_hw = generate_password_hash(data.get("password"),"")
-    user.password = data.get(password_hw, user.password)
+    
+    # Hashing the password if provided
+    if "password" in data and data["password"]:
+        user.password = generate_password_hash(data["password"])
 
     # Checking for validity if role is to be updated as well
     if "role" in data:
@@ -102,6 +143,7 @@ def update_user(user_id):
 
 # Deleting an existing user from the database
 @users_bp.route("/<int:user_id>", methods=["DELETE"])
+@admin_required
 def delete_user(user_id):
     """This function deletes a user by ID."""
     user = User.query.get_or_404(user_id) # Using got_or_404() for automatic error handling

@@ -24,7 +24,7 @@ load_dotenv()
 API_KEY = os.getenv("OPENAI_API_KEY")
 
 
-def setup_rag_components():
+def setup_rag_components(model_name: str = "gpt-4.1-mini", temperature: float = 0.3):
     """This function sets up the basic RAG components to be used in the subsequent requests"""
     # Get the directory of the current file
     current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -45,7 +45,7 @@ def setup_rag_components():
     vectorstore = FAISS.from_documents(documents=chunks, embedding=OpenAIEmbeddings(model= "text-embedding-3-small",api_key=API_KEY))
     print("Vector store created successfully")
 
-    model = ChatOpenAI(model="gpt-4.1-mini", api_key=API_KEY)
+    model = ChatOpenAI(model=model_name, api_key=API_KEY, temperature=temperature)
     print(f"model: {model.model_name}")
     # setup retriever
     retriever = vectorstore.as_retriever()

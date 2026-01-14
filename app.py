@@ -66,6 +66,7 @@ def create_app():
     app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.join(basedir, 'data/lms.db')}"
     # Disabling SQLAlchemy’s event system that tracks object changes.
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    app.config['SECRET_KEY'] = 'super-secret-key-for-dev'
 
     db.init_app(app)  # Link the database and the app. This is the reason we need to import db from models
 

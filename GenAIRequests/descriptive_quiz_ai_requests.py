@@ -52,6 +52,7 @@ def generate_descriptive_quiz(request: DescriptiveQuizRequest) -> DescriptiveQui
             {"role": "user", "content": prompt},
         ],
         text_format=DescriptiveQuizResponse,
+        temperature=0.3
     )
 
     end = time.perf_counter()  # determining the ending time of the request
