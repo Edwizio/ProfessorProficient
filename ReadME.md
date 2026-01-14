@@ -50,13 +50,25 @@ ProfessorProficient/
 │   ├── quizzes.py
 │   ├── student_answers.py
 │   └── users.py
+│   
+├── templates/
+│   ├── assignments.html
+│   ├── courses.html
+│   ├── generate_quiz.html
+│   ├── index.html
+│   ├── layout.html
+│   ├── programs.html
+│   ├── quizzes.html
+│   └──  users.html
 │
 ├── app.py
 ├── data_models.py
 ├── .env
 ├── db_schema.png
 ├── Updated_DB_Schema.png
-└── Updated_DB_Scheme_2.png
+├── Updated_DB_Scheme_2.png
+└── ReadME.md
+
 
 ⚙️ Installation & Setup
 
