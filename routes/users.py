@@ -1,6 +1,6 @@
 from flask import request, Blueprint, session, jsonify
 from sqlalchemy.exc import SQLAlchemyError
-from ProfessorProficient.data_models import db, User, UserRole
+from data_models import db, User, UserRole
 from sqlalchemy import func
 from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
@@ -68,7 +68,9 @@ def get_users():
         "name": user.name,
         "email": user.email,
         "role": user.role.value,
-        "created_at": user.created_at.isoformat() if user.created_at else None # returning a standardized ISO Format of date and time
+        "created_at": user.created_at.isoformat() if user.created_at else None,
+        "enrolled_programs": [{"id": p.id, "name": p.name} for p in user.enrolled_programs],
+        "teaching_programs": [{"id": p.id, "name": p.name} for p in user.teaching_programs]
     } for user in users], 200
 
 
@@ -182,7 +184,11 @@ def search_users():
         "id": u.id,
         "name": u.name,
         "email": u.email,
-        "role": u.role.value
+        "role": u.role.value,
+        "enrolled_courses": [{"code": c.code} for c in u.enrolled_courses],
+        "teaching_courses": [{"code": c.code} for c in u.teaching_courses],
+        "enrolled_programs": [{"name": p.name} for p in u.enrolled_programs],
+        "teaching_programs": [{"name": p.name} for p in u.teaching_programs]
     } for u in users], 200
 
 
@@ -197,7 +203,9 @@ def get_user_by_id(user_id):
         "name": user.name,
         "email": user.email,
         "role": user.role.value,
-        "created_at": user.created_at.isoformat() if user.created_at else None
+        "created_at": user.created_at.isoformat() if user.created_at else None,
+        "enrolled_programs": [{"id": p.id, "name": p.name} for p in user.enrolled_programs],
+        "teaching_programs": [{"id": p.id, "name": p.name} for p in user.teaching_programs]
     }, 200
 
 

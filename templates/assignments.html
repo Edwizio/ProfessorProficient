@@ -11,9 +11,11 @@
             <span class="input-group-text border-end-0"><i class="bi bi-search"></i></span>
             <input type="text" class="form-control border-start-0 ps-0" id="searchInput" placeholder="Search assignments...">
         </div>
+        {% if session.get('user_id') %}
         <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addAssignmentModal">
             <i class="bi bi-plus-lg"></i> Add Assignment
         </button>
+        {% endif %}
     </div>
 </div>
 
@@ -40,6 +42,7 @@
                         <td>{{ assignment.course_id }}</td>
                         <td>{{ assignment.due_date or 'N/A' }}</td>
                         <td class="text-end pe-4">
+                            {% if session.get('user_id') %}
                             <button class="btn btn-sm btn-outline-secondary edit-btn" 
                                     data-id="{{ assignment.id }}" 
                                     data-title="{{ assignment.title }}" 
@@ -48,6 +51,7 @@
                                 Edit
                             </button>
                             <button class="btn btn-sm btn-outline-danger ms-1 delete-btn" data-id="{{ assignment.id }}">Delete</button>
+                            {% endif %}
                         </td>
                     </tr>
                     {% else %}

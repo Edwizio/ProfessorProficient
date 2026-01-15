@@ -1,7 +1,7 @@
 from flask import request, Blueprint
 from sqlalchemy.exc import SQLAlchemyError
 
-from ProfessorProficient.data_models import db, Assignment, Course, User
+from data_models import db, Assignment, Course, User
 from sqlalchemy import func
 
 # Defining blueprint to be used in the app later

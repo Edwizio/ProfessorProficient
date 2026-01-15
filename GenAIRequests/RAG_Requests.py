@@ -14,7 +14,7 @@ from langchain_community.document_loaders import TextLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import FAISS
 from langchain_openai import OpenAIEmbeddings, ChatOpenAI
-from ProfessorProficient.GenAIRequests.quiz_ai_requests import QuizRequest, QuizResponse
+from GenAIRequests.quiz_ai_requests import QuizRequest, QuizResponse, MODEL_PRICING
 from langchain_community.callbacks import get_openai_callback
 import time
 
@@ -82,12 +82,21 @@ def generate_quiz_with_rag(req, retriever, model):
 
     latency = end - start
 
+    # Calculate cost manually if LangChain callback doesn't support the model (e.g. gpt-4o-mini)
+    total_cost = cb.total_cost
+    if total_cost == 0 and cb.total_tokens > 0:
+        pricing_key = model.model_name if model.model_name in MODEL_PRICING else "gpt-4.1-mini"
+        if pricing_key in MODEL_PRICING:
+            input_cost = (cb.prompt_tokens * MODEL_PRICING[pricing_key]["input"] / 1000)
+            output_cost = (cb.completion_tokens * MODEL_PRICING[pricing_key]["output"] / 1000)
+            total_cost = input_cost + output_cost
+
     cost_info = {
         "model_name": model.model_name,
         "prompt_tokens": cb.prompt_tokens,
         "completion_tokens": cb.completion_tokens,
         "total_tokens": cb.total_tokens,
-        "cost_usd": f"{cb.total_cost :.6f}",
+        "cost_usd": f"{total_cost :.6f}",
         "Latency (time taken)": f"{latency :.2f}"
     }
 

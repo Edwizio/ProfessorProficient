@@ -1,14 +1,16 @@
 {% extends "layout.html" %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
         <h1 class="h3 fw-bold mb-0">Courses</h1>
         <p class="text-muted">Manage and view all registered courses.</p>
     </div>
+    {% if session.get('user_id') %}
     <button class="btn btn-primary shadow-sm" data-bs-toggle="modal" data-bs-target="#addCourseModal">
         <i class="bi bi-plus-lg"></i> Add New Course
     </button>
+    {% endif %}
 </div>
 
 <div class="card shadow-sm">
@@ -44,6 +46,10 @@
                             <span class="badge bg-primary bg-opacity-10 text-primary">{{ course.students|length }} Enrolled</span>
                         </td>
                         <td class="text-end pe-4">
+                            {% if session.get('user_id') %}
+                            <button class="btn btn-sm btn-outline-primary enroll-btn" data-id="{{ course.id }}" data-name="{{ course.name }}">
+                                Enroll
+                            </button>
                             <button class="btn btn-sm btn-outline-secondary edit-btn" 
                                     data-id="{{ course.id }}" 
                                     data-name="{{ course.name }}" 
@@ -53,6 +59,7 @@
                                 Edit
                             </button>
                             <button class="btn btn-sm btn-outline-danger ms-1 delete-btn" data-id="{{ course.id }}">Delete</button>
+                            {% endif %}
                         </td>
                     </tr>
                     {% else %}
@@ -64,6 +71,52 @@
                     {% endfor %}
                 </tbody>
             </table>
+        </div>
+    </div>
+</div>
+
+<!-- Enrollment Modal -->
+<div class="modal fade" id="enrollmentModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold">Manage Enrollments - <span id="enrollCourseName"></span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="enrollCourseId">
+                
+                <!-- Add New Enrollment -->
+                <div class="card bg-light border-0 mb-4">
+                    <div class="card-body">
+                        <h6 class="fw-bold mb-3">Enroll New User</h6>
+                        <div class="row g-2">
+                            <div class="col-md-6">
+                                <select class="form-select" id="enrollUserSelect">
+                                    <option value="">Select User...</option>
+                                    <!-- Populated via JS -->
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <select class="form-select" id="enrollRoleSelect">
+                                    <option value="student">Student</option>
+                                    <option value="teacher">Teacher</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <button class="btn btn-primary w-100" id="enrollBtn">Add</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Current Enrollments -->
+                <h6 class="fw-bold">Current Teachers</h6>
+                <ul class="list-group mb-3" id="teacherList"></ul>
+
+                <h6 class="fw-bold">Current Students</h6>
+                <ul class="list-group" id="studentList"></ul>
+            </div>
         </div>
     </div>
 </div>
@@ -212,5 +265,111 @@
             } catch (err) { console.error(err); alert('Failed to delete course'); }
         });
     });
+
+    // --- Enrollment Logic ---
+    const enrollmentModal = new bootstrap.Modal(document.getElementById('enrollmentModal'));
+    let allUsers = [];
+
+    // Open Modal & Fetch Data
+    document.querySelectorAll('.enroll-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            const courseId = btn.dataset.id;
+            const courseName = btn.dataset.name;
+            
+            document.getElementById('enrollCourseId').value = courseId;
+            document.getElementById('enrollCourseName').textContent = courseName;
+            
+            // 1. Fetch Course Details (for current lists)
+            const courseRes = await fetch(`/courses/${courseId}`);
+            const courseData = await courseRes.json();
+            
+            // 2. Fetch All Users (for dropdown) - cache this if possible, but fetching fresh is safer
+            if(allUsers.length === 0) {
+                const usersRes = await fetch('/users/');
+                allUsers = await usersRes.json();
+            }
+
+            renderEnrollmentModal(courseData);
+            enrollmentModal.show();
+        });
+    });
+
+    function renderEnrollmentModal(course) {
+        // Populate User Dropdown (exclude already enrolled if you want, but simpler to just list all)
+        const userSelect = document.getElementById('enrollUserSelect');
+        userSelect.innerHTML = '<option value="">Select User...</option>';
+        allUsers.forEach(u => {
+            userSelect.innerHTML += `<option value="${u.id}">${u.name} (${u.role})</option>`;
+        });
+
+        // Render Teachers
+        const teacherList = document.getElementById('teacherList');
+        teacherList.innerHTML = course.teachers.map(t => `
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <span>${t.name} <small class="text-muted">(${t.email})</small></span>
+                <button class="btn btn-sm btn-outline-danger remove-user-btn" 
+                        data-course="${course.id}" data-user="${t.id}" data-role="teacher">Remove</button>
+            </li>
+        `).join('') || '<li class="list-group-item text-muted">No teachers assigned</li>';
+
+        // Render Students
+        const studentList = document.getElementById('studentList');
+        studentList.innerHTML = course.students.map(s => `
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <span>${s.name} <small class="text-muted">(${s.email})</small></span>
+                <button class="btn btn-sm btn-outline-danger remove-user-btn" 
+                        data-course="${course.id}" data-user="${s.id}" data-role="student">Remove</button>
+            </li>
+        `).join('') || '<li class="list-group-item text-muted">No students enrolled</li>';
+        
+        // Bind Remove Buttons
+        document.querySelectorAll('.remove-user-btn').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                if(!confirm('Remove this user from the course?')) return;
+                const endpoint = btn.dataset.role === 'teacher' ? 'remove-teacher' : 'remove-student';
+                const url = `/courses/${btn.dataset.course}/${endpoint}/${btn.dataset.user}`;
+                
+                try {
+                    const res = await fetch(url, { method: 'DELETE' });
+                    if(res.ok) {
+                        // Refresh modal data
+                        const updatedRes = await fetch(`/courses/${btn.dataset.course}`);
+                        renderEnrollmentModal(await updatedRes.json());
+                    } else {
+                        alert('Error: ' + (await res.json()).error);
+                    }
+                } catch(e) { console.error(e); }
+            });
+        });
+    }
+
+    // Add Enrollment Handler
+    document.getElementById('enrollBtn').addEventListener('click', async () => {
+        const courseId = document.getElementById('enrollCourseId').value;
+        const userId = document.getElementById('enrollUserSelect').value;
+        const role = document.getElementById('enrollRoleSelect').value; // student or teacher
+
+        if(!userId) return alert('Please select a user');
+
+        const endpoint = role === 'teacher' ? 'assign-teacher' : 'enroll-student';
+        const url = `/courses/${courseId}/${endpoint}/${userId}`;
+
+        try {
+            const res = await fetch(url, { method: 'POST' });
+            const data = await res.json();
+            
+            if(res.ok) {
+                // Refresh modal data
+                const updatedRes = await fetch(`/courses/${courseId}`);
+                renderEnrollmentModal(await updatedRes.json());
+            } else {
+                alert('Error: ' + (data.error || data.message || 'Unknown error'));
+            }
+        } catch(e) { 
+            console.error(e); 
+            alert('Failed to enroll user: ' + e.message); 
+        }
+    });
+
 </script>
 {% endblock %}

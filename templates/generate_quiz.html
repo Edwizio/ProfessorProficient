@@ -65,10 +65,16 @@
                     </div>
 
                     <div class="d-grid mt-4">
+                        {% if session.get('user_id') %}
                         <button type="submit" class="btn btn-primary py-2 fw-bold" id="generateBtn">
                             <span id="btnText">Generate Quiz</span>
                             <span id="btnSpinner" class="spinner-border spinner-border-sm d-none" role="status"></span>
                         </button>
+                        {% else %}
+                        <button type="button" class="btn btn-secondary py-2 fw-bold" disabled>
+                            Login to Generate Quiz
+                        </button>
+                        {% endif %}
                     </div>
                 </form>
             </div>
@@ -171,32 +177,35 @@
 
             if (response.ok) {
                 const result = await response.json();
+                console.log("Full Server Response:", result);
                 
-                // Extract cost info and remove it from main JSON display if desired, 
-                // or just display it separately.
-                const costs = result.costs;
-                // delete result.costs; // Optional: Remove from JSON view if you want it purely separate
-
+                // The costs object should be inside the result
+                const costs = result.costs || {};
+                console.log("Extracted Costs:", costs);
+                
                 jsonOutput.textContent = JSON.stringify(result, null, 2);
                 
                 // Update Cost Info UI
-                if (costs) {
+                if (result.costs) {
+                    // Try to find latency in various possible keys
+                    const latencyValue = costs['Latency (time taken)'] || costs['latency'] || costs['Latency'] || 'N/A';
+                    
                     costInfo.innerHTML = `
                         <div class="col-md-3 border-end">
                             <span class="d-block fw-bold">Time Taken</span>
-                            <span>${costs['Latency (time taken)'] || 'N/A'}s</span>
+                            <span>${latencyValue}s</span>
                         </div>
                         <div class="col-md-3 border-end">
                             <span class="d-block fw-bold">Total Tokens</span>
-                            <span>${costs.total_tokens}</span>
+                            <span>${costs.total_tokens || 0}</span>
                         </div>
                         <div class="col-md-3 border-end">
                             <span class="d-block fw-bold">Prompt / Compl.</span>
-                            <span>${costs.prompt_tokens} / ${costs.completion_tokens}</span>
+                            <span>${costs.prompt_tokens || costs.input_tokens || 0} / ${costs.completion_tokens || costs.output_tokens || 0}</span>
                         </div>
                         <div class="col-md-3">
                             <span class="d-block fw-bold">Cost (USD)</span>
-                            <span class="text-success">$${costs.cost_usd}</span>
+                            <span class="text-success">$${costs.cost_usd || '0.000000'}</span>
                         </div>
                     `;
                 }

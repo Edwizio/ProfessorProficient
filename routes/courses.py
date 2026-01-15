@@ -1,7 +1,7 @@
 from flask import request, Blueprint
 from sqlalchemy.exc import SQLAlchemyError
 
-from ProfessorProficient.data_models import db, Course, Program, User
+from data_models import db, Course, Program, User
 
 # Defining blueprint to be used in the app later
 courses_bp = Blueprint("courses",__name__)
@@ -24,6 +24,8 @@ def get_courses():
             "credit_hours": c.credit_hours,
             "program_id": c.program_id,
             "created_by": c.created_by,
+            "teachers": [{"id": t.id, "name": t.name, "email": t.email} for t in c.teachers],
+            "students": [{"id": s.id, "name": s.name, "email": s.email} for s in c.students]
         }
         for c in courses
     ], 200
@@ -78,6 +80,8 @@ def get_course(course_id):
         "credit_hours": course.credit_hours,
         "program_id": course.program_id,
         "created_by": course.created_by,
+        "teachers": [{"id": t.id, "name": t.name, "email": t.email} for t in course.teachers],
+        "students": [{"id": s.id, "name": s.name, "email": s.email} for s in course.students]
     }, 200 # Successful fetch
 
 
@@ -197,7 +201,7 @@ def enroll_student(course_id, student_id):
 
 
 # Removing a student from a course using DELETE
-@courses_bp.route("/<int:course_id>/remove-student/<int:teacher_id>", methods=["DELETE"])
+@courses_bp.route("/<int:course_id>/remove-student/<int:student_id>", methods=["DELETE"])
 def remove_student(course_id, student_id):
     """This function deletes a student from a course"""
     course = Course.query.get(course_id)
@@ -211,10 +215,10 @@ def remove_student(course_id, student_id):
         return {"message": "Student not assigned to this course"}, 400
 
     # Removing from the database using instrumented list course.students and remove method
-    course.teachers.remove(student)
+    course.students.remove(student)
     try:
         db.session.commit()
-        return {"message": f"Teacher '{student.name}' removed from '{course.name}'"}, 200
+        return {"message": f"Student '{student.name}' removed from '{course.name}'"}, 200
     except SQLAlchemyError:
         db.session.rollback()
         return {

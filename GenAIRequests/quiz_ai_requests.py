@@ -65,14 +65,14 @@ def generate_quiz(request: QuizRequest, model_name: str = "gpt-4.1-mini", temper
 
     start = time.perf_counter() # determining the starting time of the request
 
-    response = client.responses.parse(
+    response = client.beta.chat.completions.parse(
         model=model_name,
-        input=[
+        messages=[
             {"role": "system", "content": SYSTEM_ROLE},
             {"role": "user", "content": user_prompt}
         ],
         temperature=temperature,
-        text_format=QuizResponse
+        response_format=QuizResponse
     )
 
     end = time.perf_counter()  # determining the ending time of the request
@@ -85,21 +85,21 @@ def generate_quiz(request: QuizRequest, model_name: str = "gpt-4.1-mini", temper
     # Ideally, we should handle this more robustly, but for now we'll try to find the key or fallback
     pricing_key = model_name if model_name in MODEL_PRICING else "gpt-4.1-mini"
     
-    input_cost = (usage.input_tokens * MODEL_PRICING[pricing_key]["input"] / 1000)
-    output_cost = (usage.output_tokens * MODEL_PRICING[pricing_key]["output"] / 1000)
+    input_cost = (usage.prompt_tokens * MODEL_PRICING[pricing_key]["input"] / 1000)
+    output_cost = (usage.completion_tokens * MODEL_PRICING[pricing_key]["output"] / 1000)
     total_cost = input_cost + output_cost
 
     # Latency and Cost Calculations output
     cost_info = {
         "model_name": response.model,
-        "prompt_tokens": usage.input_tokens,
-        "completion_tokens": usage.output_tokens,
+        "prompt_tokens": usage.prompt_tokens,
+        "completion_tokens": usage.completion_tokens,
         "total_tokens": usage.total_tokens,
         "cost_usd": f"{total_cost:.6f}",
         "Latency (time taken)": f"{latency:.2f}"
     }
 
-    return response.output_parsed, cost_info # Ensuring the Python object returned is created by our Pydantic schema
+    return response.choices[0].message.parsed, cost_info # Ensuring the Python object returned is created by our Pydantic schema
 
 
 # Calling here right now to avoid being called in the inherited files

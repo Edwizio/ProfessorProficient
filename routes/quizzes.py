@@ -2,9 +2,9 @@ from flask import request, Blueprint, jsonify
 from sqlalchemy.exc import SQLAlchemyError
 import os
 
-from ProfessorProficient.data_models import db, Quiz, Course, User, Question, QuestionOption
-from ProfessorProficient.GenAIRequests.RAG_Requests import generate_quiz_with_rag, setup_rag_components
-from ProfessorProficient.GenAIRequests.quiz_ai_requests import QuizRequest, QuizResponse, generate_quiz
+from data_models import db, Quiz, Course, User, Question, QuestionOption
+from GenAIRequests.RAG_Requests import generate_quiz_with_rag, setup_rag_components
+from GenAIRequests.quiz_ai_requests import QuizRequest, QuizResponse, generate_quiz
 
 # Defining blueprint to be used in the app later
 quizzes_bp = Blueprint("quizzes",__name__)
@@ -28,6 +28,10 @@ def generate_ai_quiz():
     model_name = data.get("model_name", "gpt-4.1-mini")
     temperature = float(data.get("temperature", 0.3))
     
+    # Start tracking TOTAL latency for the whole request
+    import time
+    total_start = time.perf_counter()
+    
     try:
         req = QuizRequest(
             topic=data["topic"],
@@ -38,7 +42,7 @@ def generate_ai_quiz():
         result = {}
         
         if use_rag:
-            # Initialize RAG components if not already done or if model/temperature changed
+            # Initialize RAG components
             if (rag_retriever is None or rag_model is None or 
                 current_rag_model_name != model_name or current_rag_temperature != temperature):
                 try:
@@ -52,16 +56,25 @@ def generate_ai_quiz():
             quiz_raw, costs = generate_quiz_with_rag(req, rag_retriever, rag_model)
             
             # Convert to structured output
-            response = model_with_structure.invoke(f"Convert the following quiz into the structured QuizResponse format:\n\n{quiz_raw}")
+            # Passing quiz_raw.content to ensure we only send the text
+            response = model_with_structure.invoke(f"Convert the following quiz into the structured QuizResponse format:\n\n{quiz_raw.content}")
             result = response.model_dump()
+            
+            # Use the latency from the GenAIRequests file as requested
             result["costs"] = costs
             
         else:
             # Standard LLM Generation
             quiz_obj, costs = generate_quiz(req, model_name, temperature)
             result = quiz_obj.model_dump()
+            
+            # Use the costs (including latency) from the GenAIRequests file
             result["costs"] = costs
 
+        # Ensure we are using the "latency" key specifically from the costs dict
+        # The user specifically asked to take the value from the latency parameter in those files
+        # We already updated those files to use the key "latency"
+        
         # --- SAVE TO DB START ---
         try:
             # Defaulting to first course and admin user if not provided

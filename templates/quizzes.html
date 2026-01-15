@@ -11,12 +11,14 @@
             <span class="input-group-text border-end-0"><i class="bi bi-search"></i></span>
             <input type="text" class="form-control border-start-0 ps-0" id="searchInput" placeholder="Search quizzes...">
         </div>
+        {% if session.get('user_id') %}
         <a href="/ui/generate-quiz" class="btn btn-warning">
             <i class="bi bi-stars"></i> AI Generate
         </a>
         <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addQuizModal">
             <i class="bi bi-plus-lg"></i> Manual Add
         </button>
+        {% endif %}
     </div>
 </div>
 
@@ -41,6 +43,7 @@
                         <td>{{ quiz.total_marks }}</td>
                         <td>{{ quiz.course_id }}</td>
                         <td class="text-end pe-4">
+                            {% if session.get('user_id') %}
                             <button class="btn btn-sm btn-outline-secondary edit-btn" 
                                     data-id="{{ quiz.id }}" 
                                     data-title="{{ quiz.title }}" 
@@ -49,6 +52,7 @@
                                 Edit
                             </button>
                             <button class="btn btn-sm btn-outline-danger ms-1 delete-btn" data-id="{{ quiz.id }}">Delete</button>
+                            {% endif %}
                         </td>
                     </tr>
                     {% else %}

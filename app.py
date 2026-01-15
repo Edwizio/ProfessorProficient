@@ -1,16 +1,16 @@
 from flask import Flask, render_template, Blueprint
 import os
-from ProfessorProficient.data_models import db, Course, User, Program, Assignment, Quiz, UserRole
+from data_models import db, Course, User, Program, Assignment, Quiz, UserRole
 
 # Importing the Blueprints
-from ProfessorProficient.routes.assignments import assignments_bp
-from ProfessorProficient.routes.courses import courses_bp
-from ProfessorProficient.routes.users import users_bp
-from ProfessorProficient.routes.quizzes import quizzes_bp
-from ProfessorProficient.routes.programs import programs_bp
-from ProfessorProficient.routes.questions import questions_bp
-from ProfessorProficient.routes.question_options import question_options_bp
-from ProfessorProficient.routes.student_answers import student_answers_bp
+from routes.assignments import assignments_bp
+from routes.courses import courses_bp
+from routes.users import users_bp
+from routes.quizzes import quizzes_bp
+from routes.programs import programs_bp
+from routes.questions import questions_bp
+from routes.question_options import question_options_bp
+from routes.student_answers import student_answers_bp
 
 # UI Blueprint
 ui_bp = Blueprint("ui", __name__)

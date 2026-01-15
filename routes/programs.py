@@ -1,7 +1,7 @@
 from flask import request, Blueprint
 from sqlalchemy.exc import SQLAlchemyError
 
-from ProfessorProficient.data_models import db, Program, User
+from data_models import db, Program, User
 
 # Defining blueprint to be used in the app later
 programs_bp = Blueprint("programs",__name__)
@@ -15,10 +15,16 @@ def get_programs():
     if not programs:
         return  {"error": "Sorry no programs have been added to the database"}
     else:
-        return [{"id": prog.id, "name": prog.name ,"description": prog.description}
-            for prog in programs], 200
-
-
+        return [
+            {
+                "id": prog.id, 
+                "name": prog.name, 
+                "description": prog.description,
+                "teachers": [{"id": t.id, "name": t.name, "email": t.email} for t in prog.teachers],
+                "students": [{"id": s.id, "name": s.name, "email": s.email} for s in prog.students]
+            }
+            for prog in programs
+        ], 200
 
 # Getting a program by its ID using GET
 @programs_bp.route("/<int:program_id>")
@@ -29,8 +35,78 @@ def get_program(program_id):
     return {
         "id": program.id,
         "name": program.name,
-        "description": program.description
+        "description": program.description,
+        "teachers": [{"id": t.id, "name": t.name, "email": t.email} for t in program.teachers],
+        "students": [{"id": s.id, "name": s.name, "email": s.email} for s in program.students]
     }, 200
+
+# Assigning a teacher to a program
+@programs_bp.route("/<int:program_id>/assign-teacher/<int:teacher_id>", methods=["POST"])
+def assign_teacher(program_id, teacher_id):
+    program = Program.query.get(program_id)
+    teacher = User.query.get(teacher_id)
+    if not program or not teacher:
+        return {"error": "Program or Teacher not found"}, 404
+    if teacher in program.teachers:
+        return {"message": "Teacher already assigned"}, 409
+    program.teachers.append(teacher)
+    try:
+        db.session.commit()
+        return {"message": f"Teacher '{teacher.name}' assigned to '{program.name}'"}, 200
+    except SQLAlchemyError:
+        db.session.rollback()
+        return {"error": "Conflict occurred"}, 409
+
+# Removing a teacher from a program
+@programs_bp.route("/<int:program_id>/remove-teacher/<int:teacher_id>", methods=["DELETE"])
+def remove_teacher(program_id, teacher_id):
+    program = Program.query.get(program_id)
+    teacher = User.query.get(teacher_id)
+    if not program or not teacher:
+        return {"error": "Program or Teacher not found"}, 404
+    if teacher not in program.teachers:
+        return {"message": "Teacher not assigned"}, 400
+    program.teachers.remove(teacher)
+    try:
+        db.session.commit()
+        return {"message": "Teacher removed"}, 200
+    except SQLAlchemyError:
+        db.session.rollback()
+        return {"error": "Conflict occurred"}, 409
+
+# Enrolling a student in a program
+@programs_bp.route("/<int:program_id>/enroll-student/<int:student_id>", methods=["POST"])
+def enroll_student(program_id, student_id):
+    program = Program.query.get(program_id)
+    student = User.query.get(student_id)
+    if not program or not student:
+        return {"error": "Program or Student not found"}, 404
+    if student in program.students:
+        return {"message": "Student already enrolled"}, 409
+    program.students.append(student)
+    try:
+        db.session.commit()
+        return {"message": f"Student '{student.name}' enrolled in '{program.name}'"}, 200
+    except SQLAlchemyError:
+        db.session.rollback()
+        return {"error": "Conflict occurred"}, 409
+
+# Removing a student from a program
+@programs_bp.route("/<int:program_id>/remove-student/<int:student_id>", methods=["DELETE"])
+def remove_student(program_id, student_id):
+    program = Program.query.get(program_id)
+    student = User.query.get(student_id)
+    if not program or not student:
+        return {"error": "Program or Student not found"}, 404
+    if student not in program.students:
+        return {"message": "Student not enrolled"}, 400
+    program.students.remove(student)
+    try:
+        db.session.commit()
+        return {"message": "Student removed"}, 200
+    except SQLAlchemyError:
+        db.session.rollback()
+        return {"error": "Conflict occurred"}, 409
 
 
 # Creating a new program using POST

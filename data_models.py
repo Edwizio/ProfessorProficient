@@ -36,6 +36,9 @@ class User(db.Model):
     # Secondary tells SQLAlchemy that there’s a linking table that connects these two tables in a many-to-many relationship
     teaching_courses = db.relationship("Course", secondary="teacher_course", back_populates="teachers")
     enrolled_courses = db.relationship("Course", secondary="student_course", back_populates="students")
+    
+    teaching_programs = db.relationship("Program", secondary="teacher_program", back_populates="teachers")
+    enrolled_programs = db.relationship("Program", secondary="student_program", back_populates="students")
 
     def __repr__(self):
         return f"User(id = {self.id}, name = {self.name})"
@@ -59,6 +62,9 @@ class Program(db.Model):
     # As one program can have many courses, this is a one-to-many relationship, and it ensures when a parent is changed or
     # deleted, the child also gets changed or deleted
     courses = db.relationship("Course", back_populates="program", cascade="all, delete-orphan")
+
+    teachers = db.relationship("User", secondary="teacher_program", back_populates="teaching_programs")
+    students = db.relationship("User", secondary="student_program", back_populates="enrolled_programs")
 
     def __repr__(self):
         return f"Program (id = {self.id}, name = {self.name})"
@@ -111,6 +117,22 @@ student_course = db.Table(
     'student_course',
     db.Column('student_id', db.Integer, db.ForeignKey('users.id'), primary_key=True),
     db.Column('course_id', db.Integer, db.ForeignKey('courses.id'), primary_key=True),
+    db.Column('enrolled_at', db.DateTime, server_default=text('CURRENT_TIMESTAMP'))
+)
+
+# Association Table teacher_program created to handle the many-to-many relationships between teachers and programs
+teacher_program = db.Table(
+    'teacher_program',
+    db.Column('teacher_id', db.Integer, db.ForeignKey('users.id'), primary_key=True),
+    db.Column('program_id', db.Integer, db.ForeignKey('programs.id'), primary_key=True),
+    db.Column('assigned_at', db.DateTime, server_default=text('CURRENT_TIMESTAMP'))
+)
+
+# Association Table student_program created to handle the many-to-many relationships between students and programs
+student_program = db.Table(
+    'student_program',
+    db.Column('student_id', db.Integer, db.ForeignKey('users.id'), primary_key=True),
+    db.Column('program_id', db.Integer, db.ForeignKey('programs.id'), primary_key=True),
     db.Column('enrolled_at', db.DateTime, server_default=text('CURRENT_TIMESTAMP'))
 )
 

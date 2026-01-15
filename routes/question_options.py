@@ -1,7 +1,7 @@
 from flask import Blueprint, request
 from sqlalchemy.exc import SQLAlchemyError
 
-from ProfessorProficient.data_models import QuestionOption, db
+from data_models import db, QuestionOption, Question
 
 # Defining blueprint to be used in the app later
 question_options_bp = Blueprint("question_options", __name__)
