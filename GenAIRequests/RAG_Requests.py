@@ -14,7 +14,7 @@ from langchain_community.document_loaders import TextLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import FAISS
 from langchain_openai import OpenAIEmbeddings, ChatOpenAI
-from GenAIRequests.quiz_ai_requests import QuizRequest, QuizResponse, MODEL_PRICING
+from ProfessorProficient.GenAIRequests.quiz_ai_requests import QuizRequest, QuizResponse, MODEL_PRICING
 from langchain_community.callbacks import get_openai_callback
 import time
 

@@ -1,6 +1,24 @@
 {% extends "layout.html" %}
 
 {% block content %}
+<style>
+    .campus-full-bg {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image: url('https://images.unsplash.com/photo-1562774053-701939374585?q=80&w=1920&auto=format&fit=crop');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        z-index: -1;
+        opacity: 0.2; /* Lower opacity for full background to maintain readability */
+        pointer-events: none;
+    }
+</style>
+<div class="campus-full-bg"></div>
+
 <div class="row mb-4">
     <div class="col-12">
         <h1 class="display-5 fw-bold">Dashboard</h1>
@@ -39,7 +57,7 @@
 </div>
 
 <div class="row mt-5">
-    <div class="col-md-8">
+    <div class="col-12">
         <div class="card shadow-sm">
             <div class="card-header py-3">
                 <h5 class="mb-0 fw-bold">Recent Activities</h5>
@@ -68,15 +86,6 @@
                         <span class="badge bg-success rounded-pill">User</span>
                     </li>
                 </ul>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card bg-primary text-white shadow-sm">
-            <div class="card-body py-4">
-                <h5 class="fw-bold">AI Quick Tool</h5>
-                <p>Generate a 5-question quiz from your existing course materials in seconds.</p>
-                <a href="/ui/generate-quiz" class="btn btn-light fw-bold px-4">Try Now</a>
             </div>
         </div>
     </div>

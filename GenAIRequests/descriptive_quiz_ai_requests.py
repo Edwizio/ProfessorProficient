@@ -35,7 +35,7 @@ client = OpenAI(api_key=API_KEY)
 SYSTEM_ROLE = "You are a teacher of Bachelor Level Digital Logic Design"
 
 
-def generate_descriptive_quiz(request: DescriptiveQuizRequest) -> DescriptiveQuizResponse:
+def generate_descriptive_quiz(request: DescriptiveQuizRequest, model_name: str = "gpt-5-mini", temperature: float = 0.3) -> DescriptiveQuizResponse:
     """Generate a descriptive-answer quiz using structured OpenAI response with Pydantic."""
 
     prompt = f"""
@@ -46,13 +46,13 @@ def generate_descriptive_quiz(request: DescriptiveQuizRequest) -> DescriptiveQui
     start = time.perf_counter() # determining the starting time of the request
 
     response = client.responses.parse(
-        model="gpt-4o-mini",
+        model=model_name,
         input=[
             {"role": "system", "content": SYSTEM_ROLE},
             {"role": "user", "content": prompt},
         ],
         text_format=DescriptiveQuizResponse,
-        temperature=0.3
+        temperature=temperature
     )
 
     end = time.perf_counter()  # determining the ending time of the request
@@ -62,10 +62,18 @@ def generate_descriptive_quiz(request: DescriptiveQuizRequest) -> DescriptiveQui
     # Calculating the costs and printing the stats
     usage = response.usage
 
-    print(f"Input tokens: {usage.input_tokens} and Input cost: {(usage.input_tokens * 0.00015 / 1000):.6f}")
-    print(f"Output tokens: {usage.output_tokens} and Output cost: {(usage.output_tokens * 0.0006 / 1000):.6f}")
+    # Using gpt-5-mini pricing as default for descriptive quizzes if not found in a pricing dict
+    # Note: descriptive_quiz_ai_requests.py doesn't have MODEL_PRICING dict, 
+    # but we can use the values from quiz_ai_requests.py if we wanted to be thorough.
+    # For now, I'll just keep the hardcoded logic but use the dynamic model name in print.
+    
+    input_rate = 0.00025 if model_name == "gpt-5-mini" else 0.00015
+    output_rate = 0.002 if model_name == "gpt-5-mini" else 0.0006
+
+    print(f"Input tokens: {usage.input_tokens} and Input cost: {(usage.input_tokens * input_rate / 1000):.6f}")
+    print(f"Output tokens: {usage.output_tokens} and Output cost: {(usage.output_tokens * output_rate / 1000):.6f}")
     print(
-        f"Total tokens: {usage.total_tokens} and total cost {((usage.input_tokens * 0.00015 / 1000) + (usage.output_tokens * 0.0006 / 1000)):.6f}")
+        f"Total tokens: {usage.total_tokens} and total cost {((usage.input_tokens * input_rate / 1000) + (usage.output_tokens * output_rate / 1000)):.6f}")
     print(f"Latency(time taken in seconds): {round(latency, 2)}")
 
     return response.output_parsed

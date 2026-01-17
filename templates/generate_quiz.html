@@ -1,6 +1,28 @@
 {% extends "layout.html" %}
 
 {% block content %}
+<style>
+    .ai-bg-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image: url('https://images.unsplash.com/photo-1620712943543-bcc4688e7485?q=80&w=1920&auto=format&fit=crop');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        z-index: -2;
+        opacity: 0.15; /* Subtle background */
+        pointer-events: none;
+    }
+    .bright-green-text {
+        color: #39FF14 !important; /* Neon Green */
+        text-shadow: 0 0 5px rgba(57, 255, 20, 0.5);
+    }
+</style>
+<div class="ai-bg-overlay"></div>
+
 <div class="row mb-4">
     <div class="col-12">
         <h1 class="h3 fw-bold">AI Quiz Generator</h1>
@@ -112,8 +134,8 @@
                 </div>
             </div>
             <div class="card-body p-0 d-none" id="finalResult">
-                <div class="p-4 bg-dark text-success rounded-0 mb-0" style="max-height: 500px; overflow-y: auto;">
-                    <pre class="mb-0"><code id="jsonOutput" class="small"></code></pre>
+                <div class="p-4 bg-dark rounded-0 mb-0" style="max-height: 500px; overflow-y: auto;">
+                    <pre class="mb-0"><code id="jsonOutput" class="small bright-green-text"></code></pre>
                 </div>
                 <div class="card-footer border-top small text-muted">
                     <div class="row text-center" id="costInfo">
