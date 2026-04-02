@@ -64,27 +64,19 @@
             </div>
             <div class="card-body">
                 <ul class="list-group list-group-flush">
+                    {% for activity in recent_activities %}
                     <li class="list-group-item d-flex justify-content-between align-items-center px-0">
                         <div>
-                            <p class="mb-0 fw-semibold">New Quiz Generated: Logic Gates</p>
-                            <small class="text-muted">2 hours ago</small>
+                            <p class="mb-0 fw-semibold">{{ activity.title }}</p>
+                            <small class="text-muted">{{ activity.time }}</small>
                         </div>
-                        <span class="badge bg-info text-dark">AI</span>
+                        <span class="badge {{ activity.badge_class }} rounded-pill">{{ activity.type }}</span>
                     </li>
-                    <li class="list-group-item d-flex justify-content-between align-items-center px-0">
-                        <div>
-                            <p class="mb-0 fw-semibold">Course Updated: Digital Logic Design</p>
-                            <small class="text-muted">Yesterday</small>
-                        </div>
-                        <span class="badge bg-secondary rounded-pill">System</span>
+                    {% else %}
+                    <li class="list-group-item px-0">
+                        <p class="mb-0 text-muted">No recent activity found.</p>
                     </li>
-                    <li class="list-group-item d-flex justify-content-between align-items-center px-0">
-                        <div>
-                            <p class="mb-0 fw-semibold">New Student Enrolled: John Doe</p>
-                            <small class="text-muted">2 days ago</small>
-                        </div>
-                        <span class="badge bg-success rounded-pill">User</span>
-                    </li>
+                    {% endfor %}
                 </ul>
             </div>
         </div>

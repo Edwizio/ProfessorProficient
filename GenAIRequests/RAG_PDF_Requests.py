@@ -1,6 +1,6 @@
 from langchain_community.callbacks import get_openai_callback
 from pypdf import PdfReader # importing the loader files
-from ProfessorProficient.GenAIRequests.quiz_ai_requests import API_KEY, QuizResponse, QuizRequest, Question
+from GenAIRequests.quiz_ai_requests import API_KEY, QuizResponse, QuizRequest, Question
 import re # importing re(regex for cleaning)
 import unicodedata # to clean the Unicode data
 from langchain_text_splitters import CharacterTextSplitter
